@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OrbitTracer
+namespace DensityBrot
 {
 	public class RenderFinishedEventArgs : EventArgs
 	{
@@ -21,11 +21,11 @@ namespace OrbitTracer
 
 	public class ConfigChangedEventArgs : EventArgs
 	{
-		public ConfigChangedEventArgs(FracConfig conf)
+		public ConfigChangedEventArgs(FractalConfig conf)
 		{
 			Config = conf;
 		}
-		public FracConfig Config { get; private set; }
+		public FractalConfig Config { get; private set; }
 	}
 
 	public class ScrollChangedEventArgs : EventArgs

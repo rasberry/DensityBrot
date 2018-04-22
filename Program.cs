@@ -7,39 +7,32 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace OrbitTracer
+namespace DensityBrot
 {
 	class Program
 	{
 		static void Main(string[] args)
 		{
 			MagickNET.SetTempDirectory(Environment.CurrentDirectory);
+			Debug.Listeners.Add(new ConsoleTraceListener());
 
 			try {
-				MainMain(args).GetAwaiter().GetResult();
+				MainMain(args);
 			} catch(Exception e) {
-				Console.WriteLine(e.ToString());
+				Logger.PrintError(e.ToString());
 			}
 		}
 
-		static async Task MainMain(string[] args)
+		static void MainMain(string[] args)
 		{
-			if (args.Length < 1) {
-				Application.Run(new MainForm());
-			} else {
-				if (!ProcessArgs(args)) { return; }
-				await MainCmd();
-			}
-		}
+			if (!ProcessArgs(args)) { return; }
 
-		static async Task MainCmd()
-		{
 			if (ShouldCreateOrbits) {
 				ProduceOrbits();
 			} else {
-				var ren = new Render();
-				var bmp = new BitmapCanvas(Width,Height);
-				var conf = new FracConfig {
+				//var ren = new Render();
+				//var bmp = new MagicCanvas(Width,Height);
+				var conf = new FractalConfig {
 					Escape = 4.0,
 					Plane = Planes.XY,
 					Resolution = Resolution,
@@ -48,24 +41,30 @@ namespace OrbitTracer
 					OffsetX = Width/2,
 					OffsetY = Height/2
 				};
-				await ren.RenderToCanvas(bmp,conf);
-				bmp.SavePng(FileName+".png");
+
+				using (var matrix = new DensityMatrix(Width,Height))
+				{
+					var builder = new FractalBuilder(matrix,conf);
+					builder.Build();
+				}
+
+				//Logger.PrintInfo("Rendering Image ["+Width+"x"+Height+"] @"+Resolution);
+				//ren.RenderToCanvas(bmp,conf);
+				//Logger.PrintInfo("Saving "+FileName+".png");
+				//bmp.SavePng(FileName+".png");
 			}
 		}
 
 		static void ProduceOrbits() {
-
+			//TODO implement
 		}
 
 		static bool ShouldCreateOrbits = false;
 		static int Width = -1;
 		static int Height = -1;
-		//static double RealMin = double.NaN;
-		//static double RealMax = double.NaN;
-		//static double ImagMin = double.NaN;
-		//static double ImagMax = double.NaN;
 		static string FileName = null;
 		static double Resolution = 200;
+		static bool ShowVerbose = false;
 
 		static bool ProcessArgs(string[] args)
 		{
@@ -79,6 +78,10 @@ namespace OrbitTracer
 					showHelp = true;
 					noChecks = true;
 				}
+				else if (c == "-v")
+				{
+					ShowVerbose = true;
+				}
 				else if (c == "-o")
 				{
 					ShouldCreateOrbits = true;
@@ -89,47 +92,20 @@ namespace OrbitTracer
 					string sh = args[a - 0];
 					if (!int.TryParse(sw, out Width))
 					{
-						Console.WriteLine("Invalid width " + sw);
+						Logger.PrintError("Invalid width " + sw);
 						showHelp = true;
 					}
 					if (!int.TryParse(sh, out Height))
 					{
-						Console.WriteLine("Invalid height " + sh);
+						Logger.PrintError("Invalid height " + sh);
 						showHelp = true;
 					}
 				}
-				//else if (c == "-s" && (a += 4) < args.Length)
-				//{
-				//	string ri = args[a - 3];
-				//	string rx = args[a - 2];
-				//	string ii = args[a - 1];
-				//	string ix = args[a - 0];
-				//	if (!double.TryParse(ri, out RealMin))
-				//	{
-				//		Console.WriteLine("Invalid Real Min " + ri);
-				//		showHelp = true;
-				//	}
-				//	if (!double.TryParse(rx, out RealMax))
-				//	{
-				//		Console.WriteLine("Invalid Real Max " + rx);
-				//		showHelp = true;
-				//	}
-				//	if (!double.TryParse(ii, out ImagMin))
-				//	{
-				//		Console.WriteLine("Invalid Imaginary Min " + ii);
-				//		showHelp = true;
-				//	}
-				//	if (!double.TryParse(ix, out ImagMax))
-				//	{
-				//		Console.WriteLine("Invalid Imaginary Max " + ix);
-				//		showHelp = true;
-				//	}
-				//}
 				else if (c == "-r" && ++a < args.Length)
 				{
 					string res = args[a];
 					if (!double.TryParse(res,out Resolution)) {
-						Console.WriteLine("Invalid resolution "+res);
+						Logger.PrintError("Invalid resolution "+res);
 						showHelp = true;
 					}
 				}
@@ -143,45 +119,27 @@ namespace OrbitTracer
 			{
 				//sanity checks
 				if (String.IsNullOrWhiteSpace(FileName)) {
-					Console.WriteLine("E: Missing filename / prefix");
+					Logger.PrintError("Missing filename / prefix");
 					showHelp = true;
 				}
 				if (Width < 1 || Height < 1) {
-					Console.WriteLine("E: output image size is invalid");
+					Logger.PrintError("output image size is invalid");
 					showHelp = true;
 				}
-				//if (RealMin > RealMax) {
-				//	double temp = RealMin;
-				//	RealMin = RealMax;
-				//	RealMax = temp;
-				//}
-				//if (RealMax - RealMin < double.Epsilon) {
-				//	Console.WriteLine("E: Real number range must be bigger than zero");
-				//	showHelp = true;
-				//}
-				//if (ImagMin > ImagMax) {
-				//	double temp = ImagMin;
-				//	ImagMin = ImagMax;
-				//	ImagMax = temp;
-				//	if (ImagMax - ImagMin < double.Epsilon) {
-				//		Console.WriteLine("E: Imaginary number range must be bigger than zero");
-				//		showHelp = true;
-				//	}
-				//}
 				if (Resolution < double.Epsilon) {
-					Console.WriteLine("E: Resolution must be greater than zero");
+					Logger.PrintError("Resolution must be greater than zero");
 					showHelp = true;
 				}
 			}
 
 			if (showHelp) {
-				Console.WriteLine("\n"+nameof(OrbitTracer)+" [options] (filename / prefix)"
+				Logger.PrintLine("\n"+nameof(DensityBrot)+" [options] (filename / prefix)"
 					+"\nOptions:"
 					+"\n --help / -h                       Show this help"
-					//+"\n -s (rmin) (rmax) (imin) (imax)    Dimensions of space to render - real and imaginary"
+					+"\n -v                                Print additional progress messages"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 200. 400 = 2x bigger)"
-					+"\n -o                                Output orbits instead of nebulabrot"
+					+"\n -o                                Output orbits instead of dentisy plot"
 					+"\n                                    (Warning: produces one image per coordinate)"
 				);
 			}

@@ -1,0 +1,3 @@
+[submodule "HugeStructures"]
+	path = HugeStructures
+	url = git@github.com:rasberry/HugeStructures.git

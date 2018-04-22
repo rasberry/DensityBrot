@@ -9,23 +9,23 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OrbitTracer
+namespace DensityBrot
 {
 	public class Render
 	{
-		double[,] data;
+		DoubleArray matrix;
 
-		public async Task RenderToCanvas(ICanvas canvas, FracConfig config)
+		public void RenderToCanvas(ICanvas canvas, FractalConfig config)
 		{
 			int width = canvas.Width;
 			int height = canvas.Height;
 
-			if (data == null || data.GetLength(0) != width || data.GetLength(1) != height) {
-				data = new double[width,height];
+			if (matrix == null || matrix.Width != width || matrix.Height != height) {
+				matrix = new DoubleArray(width,height);
 			} else {
 				for(int y=0; y<height; y++) {
 					for(int x=0; x<width; x++) {
-						data[x,y] = 0;
+						matrix[x,y] = 0;
 					}
 				}
 			}
@@ -34,36 +34,32 @@ namespace OrbitTracer
 
 			Console.WriteLine("spooling tasks "+height);
 			for(int y=0; y<height; y++) {
-				var task = RenderRowAsync(config,y,width,height,data);
-				taskList.Add(task);
+				RenderRow(config,y,width,height,matrix);
+				Logger.PrintInfo("Rendering Row "+y);
 			}
-
-			Console.WriteLine("before wait");
-			await Task.WhenAll(taskList);
-			Console.WriteLine("after wait");
 
 			double min = double.MaxValue,max = double.MinValue;
 			for(int y=0; y<height; y++) {
 				for(int x=0; x<width; x++) {
-					double d = data[x,y];
+					double d = matrix[x,y];
 					if (d > 0) { d = Math.Log10(d); }
 					if (d < min) { min = d; }
 					if (d > max) { max = d; }
 				}
+				Logger.PrintInfo("Finding total range ["+y+"]");
 			}
 			double range = Math.Abs(max - min);
 			double mult = 255.0/range;
 
 			for(int y=0; y<height; y++) {
 				for(int x=0; x<width; x++) {
-					double d = data[x,y];
+					double d = matrix[x,y];
 					if (d > 0) { d = Math.Log10(d); }
 					Color c;
 					if (d <= 0) {
 						c = Color.Black;
 					} else {
 						double q = d*mult - min;
-						//int w = (int)Math.Min(255.0,Math.Max(0,q));
 						int w = (int)q;
 						c = Color.FromArgb(w,w,w);
 					}
@@ -74,17 +70,18 @@ namespace OrbitTracer
 						throw;
 					}
 				}
+				Logger.PrintInfo("Normalizing Colors ["+y+"]");
 			}
 		}
 
-		public Task RenderOrbitAsync(ICanvas canvas, FracConfig conf, int x, int y, Color highlight)
-		{
-			return Task.Run(() => {
-				RenderOrbitToBitmap(canvas,conf,x,y,highlight);
-			});
-		}
+		//public Task RenderOrbitAsync(ICanvas canvas, FracConfig conf, int x, int y, Color highlight)
+		//{
+		//	return Task.Run(() => {
+		//		RenderOrbitToBitmap(canvas,conf,x,y,highlight);
+		//	});
+		//}
 
-		static void RenderOrbitToBitmap(ICanvas canvas, FracConfig conf, int x, int y, Color highlight)
+		static void RenderOrbitToBitmap(ICanvas canvas, FractalConfig conf, int x, int y, Color highlight)
 		{
 			int wth = canvas.Width;
 			int hth = canvas.Height;
@@ -108,14 +105,7 @@ namespace OrbitTracer
 			canvas.SetPixel(x,y,Color.Blue);
 		}
 
-		static Task RenderRowAsync(FracConfig conf, int y, int wth, int hth, double[,] data)
-		{
-			return Task.Run(() => {
-				RenderRow(conf,y,wth,hth,data);
-			});
-		}
-
-		static void RenderRow(FracConfig conf, int y, int wth, int hth, double[,] data)
+		static void RenderRow(FractalConfig conf, int y, int wth, int hth, DoubleArray data)
 		{
 			for(int x = 0; x<wth; x++)
 			{
@@ -123,7 +113,7 @@ namespace OrbitTracer
 			}
 		}
 
-		static void InitZC(FracConfig conf, int x, int y, int wth, int hth, out Complex z, out Complex c)
+		static void InitZC(FractalConfig conf, int x, int y, int wth, int hth, out Complex z, out Complex c)
 		{
 			double cx = WinToWorld(x, conf.Resolution, wth, conf.OffsetX);
 			double cy = WinToWorld(y, conf.Resolution, hth, conf.OffsetY);
@@ -150,8 +140,9 @@ namespace OrbitTracer
 				z = new Complex(cx,cy); break;
 			}
 		}
-
-		static void RenderPart(FracConfig conf, int x, int y, int wth, int hth, double[,] data)
+				
+		static Complex[] pointBuffer = null;
+		static void RenderPart(FractalConfig conf, int x, int y, int wth, int hth, DoubleArray data)
 		{
 			//http://www.physics.emory.edu/faculty/weeks//software/mandel.c
 			//int hxres = data.GetLength(0);
@@ -163,7 +154,12 @@ namespace OrbitTracer
 			Complex z,c;
 			InitZC(conf,x,y,wth,hth,out z,out c);
 
-			Complex[] points = new Complex[conf.IterMax];
+			if (pointBuffer == null) {
+				pointBuffer = new Complex[conf.IterMax];
+			} else {
+				pointBuffer.Initialize();
+			}
+			Complex[] points = pointBuffer;
 			int escapeiter = FillOrbit(points,conf.IterMax,z,c,conf.Escape);
 
 			for(int iter = 0; iter < escapeiter; iter++)
@@ -172,7 +168,7 @@ namespace OrbitTracer
 				int bx = WorldToWin(f.Real,conf.Resolution,wth,conf.OffsetX);
 				int by = WorldToWin(f.Imaginary,conf.Resolution,hth,conf.OffsetY);
 				if (bx > 0 && bx < wth && by > 0 && by < hth) {
-					InterlockedAdd(ref data[bx,by],1);
+					data.IncrementByOne(bx,by);
 				}
 			}
 
@@ -238,9 +234,56 @@ namespace OrbitTracer
 				double currentValue = newCurrentValue;
 				double newValue = currentValue + value;
 				newCurrentValue = Interlocked.CompareExchange(ref location1, newValue, currentValue);
-				if (newCurrentValue == currentValue)
+				if (newCurrentValue == currentValue) {
 					return newValue;
+				}
 			}
+		}
+
+		//iterate HSL L=[0 to 1] S=1 H[0 to 360]
+		static Color FindColorFromRange(double min, double max, double val)
+		{
+			double range = max - min;
+			double spacemax = 256.0 * 360.0; //L * H
+			double pos = (val - min) / range * spacemax;
+	
+			//basically map 2D HxL space into one dimension
+			double s = 1.0;
+			double l = (pos / spacemax) * 0.9 + 0.05; //clip the edges by 5%
+			double h = (pos % (360.0 * 4)) / (360.0 * 4); //4 slows down the cycle 4x
+	
+			return HSLToRGB(h,s,l);
+		}
+
+		//https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
+		static Color HSLToRGB(double h, double s, double l)
+		{
+			double r=0, g=0, b=0;
+			if (s == 0) {
+				r = b = b = l; //gray scale
+			} else {
+				double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+				double p = 2 * l - q;
+				r = HueToRGB(p, q, h + 1/3);
+				g = HueToRGB(p, q, h);
+				b = HueToRGB(p, q, h - 1/3);
+			}
+
+			int ir = (int)Math.Round(r * 255);
+			int ig = (int)Math.Round(g * 255);
+			int ib = (int)Math.Round(b * 255);
+
+			return Color.FromArgb(ir,ig,ib);
+		}
+
+		static double HueToRGB(double p, double q, double t)
+		{
+			if(t < 0) { t += 1; }
+			if(t > 1) { t -= 1; }
+			if(t < 1/6) { return p + (q - p) * 6 * t; }
+			if(t < 1/2) { return q; }
+			if(t < 2/3) { return p + (q - p) * (2/3 - t) * 6; }
+			return p;
 		}
 	}
 }
