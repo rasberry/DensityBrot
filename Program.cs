@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace DensityBrot
 {
@@ -46,6 +45,7 @@ namespace DensityBrot
 				{
 					var builder = new FractalBuilder(matrix,conf);
 					builder.Build();
+					matrix.SaveToFile(FileName);
 				}
 
 				//Logger.PrintInfo("Rendering Image ["+Width+"x"+Height+"] @"+Resolution);
@@ -137,6 +137,9 @@ namespace DensityBrot
 					+"\nOptions:"
 					+"\n --help / -h                       Show this help"
 					+"\n -v                                Print additional progress messages"
+					+"\n -m                                Create a density matrix file (this is the default)"
+					+"\n -i                                Read density matrix file and output an image"
+					+"\n                                     if -m is also specified both files will be created"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 200. 400 = 2x bigger)"
 					+"\n -o                                Output orbits instead of dentisy plot"
