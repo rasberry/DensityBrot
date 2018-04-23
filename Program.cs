@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,33 +28,64 @@ namespace DensityBrot
 		{
 			if (!ProcessArgs(args)) { return; }
 
-			if (ShouldCreateOrbits) {
-				ProduceOrbits();
-			} else {
-				//var ren = new Render();
-				//var bmp = new MagicCanvas(Width,Height);
-				var conf = new FractalConfig {
-					Escape = 4.0,
-					Plane = Planes.XY,
-					Resolution = Resolution,
-					X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
-					IterMax = 1000,
-					OffsetX = Width/2,
-					OffsetY = Height/2
-				};
+			//if (ShouldCreateOrbits) {
+			//	ProduceOrbits();
+			//} else {
+			//var ren = new Render();
+			//var bmp = new MagicCanvas(Width,Height);
+			var conf = new FractalConfig {
+				Escape = 4.0,
+				Plane = Planes.XY,
+				Resolution = Resolution,
+				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
+				IterMax = 1000,
+				OffsetX = Width/2,
+				OffsetY = Height/2
+			};
 
-				using (var matrix = new DensityMatrix(Width,Height))
-				{
-					var builder = new FractalBuilder(matrix,conf);
-					builder.Build();
-					matrix.SaveToFile(FileName);
+			DensityMatrix matrix = null;
+			if (CreateMatrix)
+			{
+				matrix = new DensityMatrix(Width,Height);
+				var builder = new FractalBuilder(matrix,conf);
+				Debug.WriteLine("building matrix");
+				builder.Build();
+				string n = EnsureEndsWith(FileName,".dm");
+				Debug.WriteLine("saving matrix file ["+n+"]");
+				matrix.SaveToFile(n);
+			}
+			if (CreateImage)
+			{
+				if (matrix == null) {
+					string a = EnsureEndsWith(FileName,".dm");
+					Debug.WriteLine("loading matrix file ["+a+"]");
+					matrix = new DensityMatrix(a);
+					Width = matrix.Width;
+					Height = matrix.Height;
 				}
 
-				//Logger.PrintInfo("Rendering Image ["+Width+"x"+Height+"] @"+Resolution);
-				//ren.RenderToCanvas(bmp,conf);
-				//Logger.PrintInfo("Saving "+FileName+".png");
-				//bmp.SavePng(FileName+".png");
+				Debug.WriteLine("matrix = ["+matrix.Width+"x"+matrix.Height+" "+matrix.Maximum+"]");
+				IColorMap cm = new FullRangeRGBColorMap();
+				var img = new MagicCanvas(Width,Height);
+				Debug.WriteLine("building image");
+				for(int y=0; y<Height; y++) {
+					for(int x=0; x<Width; x++) {
+						Color c = cm.GetColor(matrix[x,y],matrix.Maximum);
+						img.SetPixel(x,y,c);
+					}
+				}
+				string n = EnsureEndsWith(FileName,".png");
+				Debug.WriteLine("saving image file ["+n+"]");
+				img.SavePng(n);
 			}
+		}
+
+		static string EnsureEndsWith(string name,string ext)
+		{
+			if (!name.EndsWith(ext,StringComparison.OrdinalIgnoreCase)) {
+				name += ext;
+			}
+			return name;
 		}
 
 		static void ProduceOrbits() {
@@ -65,6 +98,8 @@ namespace DensityBrot
 		static string FileName = null;
 		static double Resolution = 200;
 		static bool ShowVerbose = false;
+		static bool CreateMatrix = false;
+		static bool CreateImage = false;
 
 		static bool ProcessArgs(string[] args)
 		{
@@ -85,6 +120,14 @@ namespace DensityBrot
 				else if (c == "-o")
 				{
 					ShouldCreateOrbits = true;
+				}
+				else if (c == "-i")
+				{
+					CreateImage = true;
+				}
+				else if (c == "-m")
+				{
+					CreateMatrix = true;
 				}
 				else if (c == "-d" && (a += 2) < args.Length)
 				{
@@ -117,16 +160,19 @@ namespace DensityBrot
 
 			if (!noChecks)
 			{
+				if (!CreateImage && !CreateMatrix) {
+					CreateMatrix = true; //default mode
+				}
 				//sanity checks
 				if (String.IsNullOrWhiteSpace(FileName)) {
 					Logger.PrintError("Missing filename / prefix");
 					showHelp = true;
 				}
-				if (Width < 1 || Height < 1) {
+				if (CreateMatrix && (Width < 1 || Height < 1)) {
 					Logger.PrintError("output image size is invalid");
 					showHelp = true;
 				}
-				if (Resolution < double.Epsilon) {
+				if (CreateMatrix && Resolution < double.Epsilon) {
 					Logger.PrintError("Resolution must be greater than zero");
 					showHelp = true;
 				}
@@ -137,8 +183,8 @@ namespace DensityBrot
 					+"\nOptions:"
 					+"\n --help / -h                       Show this help"
 					+"\n -v                                Print additional progress messages"
-					+"\n -m                                Create a density matrix file (this is the default)"
-					+"\n -i                                Read density matrix file and output an image"
+					+"\n -m [filaneme]                     Create a density matrix file (this is the default)"
+					+"\n -i [filename]                     Read density matrix file and output an image"
 					+"\n                                     if -m is also specified both files will be created"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 200. 400 = 2x bigger)"

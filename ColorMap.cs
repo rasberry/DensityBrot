@@ -16,7 +16,10 @@ namespace DensityBrot
 	{
 		public Color GetColor(long index, long maximum)
 		{
-			double pct = (double)index / maximum;
+			double li = Math.Max(0,Math.Log(index));
+			double lm = Math.Max(0,Math.Log(maximum));
+
+			double pct = li / lm;
 			int gray = (int)Math.Min(255.0,pct * 256.0);
 			return Color.FromArgb(gray,gray,gray);
 		}
@@ -26,7 +29,10 @@ namespace DensityBrot
 	{
 		public Color GetColor(long index, long maximum)
 		{
-			return FindColorFromRange(0,maximum,index);
+			return FindColorFromRange(0,
+				Math.Max(0,Math.Log(maximum)),
+				Math.Max(0,Math.Log(index))
+			);
 		}
 
 		//iterate HSL L=[0 to 1] S=1 H[0 to 360]

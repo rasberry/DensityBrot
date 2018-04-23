@@ -96,11 +96,11 @@ namespace DensityBrot
 		void LoadDataFromFile(string name)
 		{
 			using(var fs = File.Open(name,FileMode.Open,FileAccess.Read,FileShare.Read))
-			using(var gz = new GZipStream(fs,CompressionLevel.Optimal))
+			using(var gz = new GZipStream(fs,CompressionMode.Decompress))
 			{
 				ReadHeader(gz,out int w,out int h, out long m);
 				CreateArray(MakeConfig(w,h));
-				Maximum = m;
+				Width = w; Height = h; Maximum = m;
 
 				byte[] buff = new byte[sizeof(long)];
 				for(long i=0; i<data.Length; i++) {
@@ -112,8 +112,8 @@ namespace DensityBrot
 		}
 		void SaveDataToFile(ITitanicArray<long> data, string name)
 		{
-			using(var fs = File.Open(name,FileMode.Create,FileAccess.Write,FileShare.Read))
-			using(var gz = new GZipStream(fs,CompressionMode.Decompress))
+			using(var fs = File.Open(name,FileMode.Create,FileAccess.ReadWrite,FileShare.Read))
+			using(var gz = new GZipStream(fs,CompressionLevel.Optimal))
 			{
 				WriteHeader(gz);
 
