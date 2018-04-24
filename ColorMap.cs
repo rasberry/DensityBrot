@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -44,7 +45,8 @@ namespace DensityBrot
 	
 			//basically map 2D HxL space into one dimension
 			double s = 1.0;
-			double l = (pos / spacemax) * 0.9 + 0.05; //clip the edges by 5%
+			//double l = (pos / spacemax) * 0.9 + 0.05; //clip the edges by 5%
+			double l = pos / spacemax;
 			double h = (pos % (360.0 * 4)) / (360.0 * 4); //4 slows down the cycle 4x
 	
 			return HSLToRGB(h,s,l);
@@ -55,18 +57,18 @@ namespace DensityBrot
 		{
 			double r=0, g=0, b=0;
 			if (s == 0) {
-				r = b = b = l; //gray scale
+				r = g = b = l; //gray scale
 			} else {
-				double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-				double p = 2 * l - q;
-				r = HueToRGB(p, q, h + 1/3);
+				double q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+				double p = 2.0 * l - q;
+				r = HueToRGB(p, q, h + 1.0/3.0);
 				g = HueToRGB(p, q, h);
-				b = HueToRGB(p, q, h - 1/3);
+				b = HueToRGB(p, q, h - 1.0/3.0);
 			}
 
-			int ir = (int)Math.Round(r * 255);
-			int ig = (int)Math.Round(g * 255);
-			int ib = (int)Math.Round(b * 255);
+			int ir = (int)Math.Round(r * 255.0);
+			int ig = (int)Math.Round(g * 255.0);
+			int ib = (int)Math.Round(b * 255.0);
 
 			return Color.FromArgb(ir,ig,ib);
 		}
@@ -75,9 +77,9 @@ namespace DensityBrot
 		{
 			if(t < 0) { t += 1; }
 			if(t > 1) { t -= 1; }
-			if(t < 1/6) { return p + (q - p) * 6 * t; }
-			if(t < 1/2) { return q; }
-			if(t < 2/3) { return p + (q - p) * (2/3 - t) * 6; }
+			if(t < 1.0/6.0) { return p + (q - p) * 6.0 * t; }
+			if(t < 1.0/2.0) { return q; }
+			if(t < 2.0/3.0) { return p + (q - p) * (2.0/3.0 - t) * 6.0; }
 			return p;
 		}
 	}

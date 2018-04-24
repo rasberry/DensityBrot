@@ -31,8 +31,7 @@ namespace DensityBrot
 			//if (ShouldCreateOrbits) {
 			//	ProduceOrbits();
 			//} else {
-			//var ren = new Render();
-			//var bmp = new MagicCanvas(Width,Height);
+
 			var conf = new FractalConfig {
 				Escape = 4.0,
 				Plane = Planes.XY,
@@ -44,40 +43,62 @@ namespace DensityBrot
 			};
 
 			DensityMatrix matrix = null;
-			if (CreateMatrix)
+			try
 			{
-				matrix = new DensityMatrix(Width,Height);
-				var builder = new FractalBuilder(matrix,conf);
-				Debug.WriteLine("building matrix");
-				builder.Build();
-				string n = EnsureEndsWith(FileName,".dm");
-				Debug.WriteLine("saving matrix file ["+n+"]");
-				matrix.SaveToFile(n);
-			}
-			if (CreateImage)
-			{
-				if (matrix == null) {
-					string a = EnsureEndsWith(FileName,".dm");
-					Debug.WriteLine("loading matrix file ["+a+"]");
-					matrix = new DensityMatrix(a);
-					Width = matrix.Width;
-					Height = matrix.Height;
+				if (CreateMatrix) {
+					matrix = DoCreateMatrix(conf);
 				}
+				if (CreateImage) {
+					matrix = DoCreateImage(matrix);
+				}
+			}
+			finally
+			{
+				if (matrix != null) {
+					matrix.Dispose();
+				}
+			}
+		}
 
-				Debug.WriteLine("matrix = ["+matrix.Width+"x"+matrix.Height+" "+matrix.Maximum+"]");
-				IColorMap cm = new FullRangeRGBColorMap();
-				var img = new MagicCanvas(Width,Height);
-				Debug.WriteLine("building image");
-				for(int y=0; y<Height; y++) {
-					for(int x=0; x<Width; x++) {
-						Color c = cm.GetColor(matrix[x,y],matrix.Maximum);
-						img.SetPixel(x,y,c);
-					}
-				}
-				string n = EnsureEndsWith(FileName,".png");
-				Debug.WriteLine("saving image file ["+n+"]");
-				img.SavePng(n);
+		static DensityMatrix DoCreateMatrix(FractalConfig conf)
+		{
+			DensityMatrix matrix = new DensityMatrix(Width, Height);
+			var builder = new FractalBuilder(matrix, conf);
+			Debug.WriteLine("building matrix");
+			builder.Build();
+			string n = EnsureEndsWith(FileName, ".dm");
+			Debug.WriteLine("saving matrix file [" + n + "]");
+			matrix.SaveToFile(n);
+			return matrix;
+		}
+
+		static DensityMatrix DoCreateImage(DensityMatrix matrix)
+		{
+			if (matrix == null)
+			{
+				string a = EnsureEndsWith(FileName, ".dm");
+				Debug.WriteLine("loading matrix file [" + a + "]");
+				matrix = new DensityMatrix(a);
+				Width = matrix.Width;
+				Height = matrix.Height;
 			}
+
+			Debug.WriteLine("matrix = [" + matrix.Width + "x" + matrix.Height + " " + matrix.Maximum + "]");
+			IColorMap cm = new FullRangeRGBColorMap();
+			var img = new MagicCanvas(Width, Height);
+			Debug.WriteLine("building image");
+			for (int y = 0; y < Height; y++)
+			{
+				for (int x = 0; x < Width; x++)
+				{
+					Color c = cm.GetColor(matrix[x, y], matrix.Maximum);
+					img.SetPixel(x, y, c);
+				}
+			}
+			string n = EnsureEndsWith(FileName, ".png");
+			Debug.WriteLine("saving image file [" + n + "]");
+			img.SavePng(n);
+			return matrix;
 		}
 
 		static string EnsureEndsWith(string name,string ext)
