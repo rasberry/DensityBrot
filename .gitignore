@@ -299,3 +299,5 @@ __pycache__/
 test
 *.bat
 *.js
+stuff
+*.html

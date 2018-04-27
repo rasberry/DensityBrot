@@ -61,6 +61,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorHelpers.cs" />
     <Compile Include="ColorMap.cs" />
     <Compile Include="Definitions.cs" />
     <Compile Include="DensityMatrix.cs" />

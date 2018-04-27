@@ -33,18 +33,17 @@ namespace DensityBrot
 		public void Build()
 		{
 			var sw = Stopwatch.StartNew();
-			long checkpoint = sw.ElapsedMilliseconds;
 			
 			for(int y = 0; y<Height; y++) {
 				for(int x = 0; x<Width; x++) {
 					RenderPart(config,x,y,Width,Height,Matrix);
 				}
-				if (sw.ElapsedMilliseconds - checkpoint > 1000) {
-					checkpoint = sw.ElapsedMilliseconds;
-					Console.WriteLine("progress "+y+" out of "+Height);
+				if (sw.ElapsedMilliseconds > 1000) {
+					sw.Restart();
+					Logger.PrintInfo("progress "+y+" out of "+Height);
 				}
 			}
-			Debug.WriteLine("Build took "+sw.ElapsedMilliseconds);
+			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
 		}
 
 		static void InitZC(FractalConfig conf, int x, int y, int wth, int hth, out Complex z, out Complex c)
