@@ -51,10 +51,24 @@ namespace DensityBrot
 
 		ColorD(double a, double r, double g, double b)
 		{
-			A = a < 0.0 ? 0.0 : a > 1.0 ? 1.0 : a;
-			R = r < 0.0 ? 0.0 : r > 1.0 ? 1.0 : r;
-			G = g < 0.0 ? 0.0 : g > 1.0 ? 1.0 : g;
-			B = b < 0.0 ? 0.0 : b > 1.0 ? 1.0 : b;
+			A = Clamp(a);
+			R = Clamp(r);
+			G = Clamp(g);
+			B = Clamp(b);
+		}
+
+		static double Clamp(double n)
+		{
+			return
+			n < 0.0
+				? 0.0
+			: n > 1.0
+				? 1.0
+			: double.IsNaN(n)
+				? 0.0
+			: double.IsInfinity(n)
+				? 0.0
+			: n ;
 		}
 
 		public Color ToColor()

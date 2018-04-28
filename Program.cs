@@ -98,7 +98,7 @@ namespace DensityBrot
 			}
 
 			Logger.PrintInfo("matrix = [" + matrix.Width + "x" + matrix.Height + " " + matrix.Maximum + "]");
-			IColorMap cm = new FullRangeRGBColorMap();
+			IColorMap cm = GetColorMap(out string _);
 			using (var img = new MagicCanvas(Options.Width, Options.Height))
 			{
 				Logger.PrintInfo("building image");
@@ -134,16 +134,7 @@ namespace DensityBrot
 
 		static void CreateColorMapTest()
 		{
-			IColorMap cmap;
-			string name;
-			if (!String.IsNullOrWhiteSpace(Options.GgrFile)) {
-				cmap = ColorHelpers.GetGimpColorMap(Options.GgrFile);
-				name = Path.GetFileNameWithoutExtension(Options.GgrFile);
-			} else {
-				cmap = ColorHelpers.GetColorMap(Options.MapColors);
-				name = Options.MapColors.ToString();
-			}
-
+			IColorMap cmap = GetColorMap(out string name);
 			using (var img = new MagicCanvas(Options.Width,Options.Height))
 			{
 				for(int x=0; x<Options.Width; x++)
@@ -153,6 +144,19 @@ namespace DensityBrot
 				}
 				img.SavePng("ColorMapTest-"+name+".png");
 			}
+		}
+
+		static IColorMap GetColorMap(out string name)
+		{
+			IColorMap cmap;
+			if (!String.IsNullOrWhiteSpace(Options.GgrFile)) {
+				cmap = ColorHelpers.GetGimpColorMap(Options.GgrFile);
+				name = Path.GetFileNameWithoutExtension(Options.GgrFile);
+			} else {
+				cmap = ColorHelpers.GetColorMap(Options.MapColors);
+				name = Options.MapColors.ToString();
+			}
+			return cmap;
 		}
 	}
 }

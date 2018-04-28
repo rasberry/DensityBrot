@@ -15,7 +15,7 @@ namespace DensityBrot
 			TestColorMap = 2
 		}
 
-		public static ProcessMode Mode = ProcessMode.CreateOrbits;
+		public static ProcessMode Mode = ProcessMode.Fractal;
 		public static int Width = -1;
 		public static int Height = -1;
 		public static string FileName = null;
@@ -130,7 +130,10 @@ namespace DensityBrot
 						CreateMatrix = true; //default mode
 					}
 					//sanity checks
-					if (String.IsNullOrWhiteSpace(FileName)) {
+					if (CreateMatrix && String.IsNullOrWhiteSpace(FileName)) {
+						FileName = "DB-"+DateTime.Now.ToString("yyyyMMddHHmmss");
+					}
+					if (CreateImage && String.IsNullOrWhiteSpace(FileName)) {
 						Logger.PrintError("Missing filename / prefix");
 						showHelp = true;
 					}
