@@ -92,21 +92,23 @@ namespace DensityBrot
 
 			Logger.PrintInfo("matrix = [" + matrix.Width + "x" + matrix.Height + " " + matrix.Maximum + "]");
 			IColorMap cm = new FullRangeRGBColorMap();
-			var img = new MagicCanvas(Width, Height);
-			Logger.PrintInfo("building image");
-			double lm = Math.Log(matrix.Maximum);
-			for (int y = 0; y < Height; y++)
+			using (var img = new MagicCanvas(Width, Height))
 			{
-				for (int x = 0; x < Width; x++)
+				Logger.PrintInfo("building image");
+				double lm = Math.Log(matrix.Maximum);
+				for (int y = 0; y < Height; y++)
 				{
-					double li = Math.Log(matrix[x,y]);
-					Color c = cm.GetColor(li, lm).ToColor();
-					img.SetPixel(x, y, c);
+					for (int x = 0; x < Width; x++)
+					{
+						double li = Math.Log(matrix[x,y]);
+						ColorD c = cm.GetColor(li, lm);
+						img.SetPixel(x, y, c);
+					}
 				}
+				string n = EnsureEndsWith(FileName, ".png");
+				Logger.PrintInfo("saving image file [" + n + "]");
+				img.SavePng(n);
 			}
-			string n = EnsureEndsWith(FileName, ".png");
-			Logger.PrintInfo("saving image file [" + n + "]");
-			img.SavePng(n);
 			return matrix;
 		}
 
@@ -135,23 +137,14 @@ namespace DensityBrot
 				name = MapColors.ToString();
 			}
 
-			using (var mi = new MagickImage(MagickColors.Transparent,Width,Height))
+			using (var img = new MagicCanvas(Width,Height))
 			{
-				mi.ColorType = ColorType.TrueColorAlpha;
-				mi.Alpha(AlphaOption.Transparent);
-				mi.ColorAlpha(MagickColors.Transparent);
-
-				var d = new Drawables();
-				
 				for(int x=0; x<Width; x++)
 				{
-					Color c = cmap.GetColor(x,Width).ToColor();
-					d.FillColor(c);
-					d.Line(x,0,x,Height-1);
+					ColorD c = cmap.GetColor(x,Width);
+					img.DrawLine(c,x,0,x,Height-1);
 				}
-				d.Draw(mi);
-				var fs = File.Open("ColorMapTest-"+name+".png",FileMode.Create,FileAccess.Write,FileShare.Read);
-				mi.Write(fs,MagickFormat.Png32);
+				img.SavePng("ColorMapTest-"+name+".png");
 			}
 		}
 

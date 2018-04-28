@@ -12,10 +12,7 @@ namespace DensityBrot
 
 	public class FractalConfig
 	{
-		public double X;
-		public double Y;
-		public double W;
-		public double Z;
+		public double X,Y,W,Z;
 		public Planes Plane;
 		public double Resolution;
 		public double Escape;
@@ -27,10 +24,8 @@ namespace DensityBrot
 
 		public static FractalConfig Default { get {
 			return new FractalConfig {
-				X = 0.0,
-				Y = 0.0,
-				W = 0.0,
-				Z = 0.0,
+				X = 0.0,Y = 0.0,
+				W = 0.0,Z = 0.0,
 				Plane = Planes.XY,
 				Resolution = 20.0,
 				Escape = 4.0,
