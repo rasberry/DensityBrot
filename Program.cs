@@ -135,19 +135,41 @@ namespace DensityBrot
 				name = MapColors.ToString();
 			}
 
-			using (var mi = new MagickImage(MagickColor.FromRgba(0,0,0,0),Width,Height))
+			#if false
+			using (var bmp = new Bitmap(Width,Height))
+			using (var g = Graphics.FromImage(bmp))
 			{
-				var d = new Drawables();
 				for(int x=0; x<Width; x++)
 				{
 					Color c = cmap.GetColor(x,Width);
-					d.StrokeWidth(1);
-					d.StrokeColor(c);
+					var p = new Pen(c);
+					p.Width = 1;
+					g.DrawLine(p,x,0,x,Height-1);
+				}
+				bmp.Save("ColorMapTest-"+name+".png");
+			}
+			#endif
+
+			//#if false
+			using (var mi = new MagickImage(MagickColors.Transparent,Width,Height))
+			{
+				mi.ColorType = ColorType.TrueColorAlpha;
+				mi.Alpha(AlphaOption.Transparent);
+				mi.ColorAlpha(MagickColors.Transparent);
+
+				var d = new Drawables();
+				
+				for(int x=0; x<Width; x++)
+				{
+					Color c = cmap.GetColor(x,Width);
+					d.FillColor(c);
 					d.Line(x,0,x,Height-1);
 				}
 				d.Draw(mi);
-				mi.Write("ColorMapTest-"+name+".png");
+				var fs = File.Open("ColorMapTest-"+name+".png",FileMode.Create,FileAccess.Write,FileShare.Read);
+				mi.Write(fs,MagickFormat.Png32);
 			}
+			//#endif
 		}
 
 		enum ProcessMode

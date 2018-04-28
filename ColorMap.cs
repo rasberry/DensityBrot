@@ -68,6 +68,65 @@ namespace DensityBrot
 
 		Gradient Grad = null;
 
+		#if false
+		static void GradientColour(double x, Gradient grad,out double r, out double g, out double b, out double a)
+		{
+			r = g = b = a = 0;
+			GradSegment seg = null;
+			foreach(var s in grad.segments) {
+				if (s.left <= x && x <= s.right) {
+					seg = s; break;
+				}
+			}
+
+			if (seg == null) {
+				return;
+			}
+
+			double mid = (seg.middle - seg.left) / (seg.right - seg.left);
+			double pos = (x - seg.left) / (seg.right - seg.left);
+
+			double f = pos <= mid
+				? pos / mid / 2.0
+				: (pos - mid) / (1.0 - mid) / 2.0 + 0.5
+			;
+
+			if (seg.type == GradType.Curved) {
+				f = Math.Pow(pos, Math.Log(0.5) / Math.Log(mid));
+			} else if (seg.type == GradType.Sine) {
+				f = (Math.Sin((-Math.PI / 2.0) + Math.PI * f) + 1.0) / 2.0;
+			} else if (seg.type == GradType.SphereInc) {
+				f -= 1;
+				f = Math.Sqrt(1.0 - f * f);
+			} else if (seg.type == GradType.SphereDec) {
+				f = 1.0 - Math.Sqrt(1.0 - f * f);
+			}
+
+			a = seg.a0 + (seg.a1 - seg.a0) * f;
+
+			if (seg.color == GradColor.RGB)
+			{
+				r = seg.r0 + (seg.r1 - seg.r0) * f;
+				g = seg.g0 + (seg.g1 - seg.g0) * f;
+				b = seg.b0 + (seg.b1 - seg.b0) * f;
+			}
+			else
+			{
+				ColorHelpers.RGBtoHSV(seg.r0,seg.g0,seg.b0,out double h0,out double s0, out double v0);
+				ColorHelpers.RGBtoHSV(seg.r1,seg.g1,seg.b1,out double h1,out double s1, out double v1);
+				if (seg.color == GradColor.HSVccw && h0 < h1) {
+					h0 = 1.0 - h0;
+				} else if (seg.color == GradColor.HSVcw && h1 < h0) {
+				}
+
+				double h = Math.Abs(h1 + (h0 - h1) * f % 1.0);
+				double s = s1 + (s0 - s1) * f;
+				double v = v1 + (v0 - v1) * f;
+				ColorHelpers.HSVtoRGB(h,s,v,out r,out g,out b);
+			}
+		}
+		#endif
+
 		static void GradientColour(double z, Gradient grad,out double r, out double g, out double b, out double a)
 		{
 			r = 0; g = 0; b = 0; a = 0;
@@ -77,14 +136,10 @@ namespace DensityBrot
 
 			z = Math.Min(1.0,Math.Max(0.0,z));
 			var seg = GetSegmentAt(grad,z);
-			GradSegmentRGBA(z,seg,out r, out g, out b, out a);
-		}
 
-		static void GradSegmentRGBA(double z, GradSegment seg, out double r, out double g, out double b, out double a)
-		{
 			double middle,factor = 0;
 			double seglen = seg.right - seg.left;
-			if (seg.left < double.Epsilon) {
+			if (seglen < double.Epsilon) {
 				middle = 0.5;
 				z = 0.5;
 			} else {
