@@ -11,27 +11,26 @@ namespace DensityBrot
 {
 	public interface IColorMap
 	{
-		Color GetColor(double index, double maximum);
+		ColorD GetColor(double index, double maximum);
 	}
 
 	public class GrayColorMap : IColorMap
 	{
-		public Color GetColor(double index, double maximum)
+		public ColorD GetColor(double index, double maximum)
 		{
 			double pct = index / maximum;
-			int gray = (int)Math.Min(255.0,pct * 256.0);
-			return Color.FromArgb(gray,gray,gray);
+			return ColorD.FromArgb(1.0,pct,pct,pct);
 		}
 	}
 
 	public class FullRangeRGBColorMap : IColorMap
 	{
-		public Color GetColor(double index, double maximum)
+		public ColorD GetColor(double index, double maximum)
 		{
 			return FindColorFromRange(0,maximum,index);
 		}
 
-		static Color FindColorFromRange(double min, double max, double val)
+		static ColorD FindColorFromRange(double min, double max, double val)
 		{
 			//iterate HSL L=[0 to 1] S=1 H[0 to 360]
 			double range = max - min;
@@ -44,7 +43,8 @@ namespace DensityBrot
 			double l = pos / spacemax;
 			double h = (pos % (360.0 * 4)) / (360.0 * 4); //4 slows down the cycle 4x
 	
-			return ColorHelpers.HSLToRGB(h,s,l);
+			ColorHelpers.HSLToRGB(h,s,l, out double r,out double g,out double b);
+			return ColorD.FromArgb(1.0,r,g,b);
 		}
 	}
 
@@ -59,18 +59,18 @@ namespace DensityBrot
 			Grad = LoadGradient(ggrfile);
 		}
 
-		public Color GetColor(double index, double maximum)
+		public ColorD GetColor(double index, double maximum)
 		{
 			double z = index / maximum;
 			GradientColour(z,Grad,out double r, out double g, out double b, out double a);
-			return Color.FromArgb((int)(a*255),(int)(r*255),(int)(g*255),(int)(b*255));
+			return ColorD.FromArgb(a,r,g,b);
 		}
 
 		Gradient Grad = null;
 
 		static void GradientColour(double z, Gradient grad,out double r, out double g, out double b, out double a)
 		{
-			r = 0; g = 0; b = 0; a = 0;
+			r = g = b = a = 0;
 			if (grad == null) {
 				return;
 			}

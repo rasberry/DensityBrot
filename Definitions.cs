@@ -1,5 +1,7 @@
-﻿using System;
+﻿using ImageMagick;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,5 +44,41 @@ namespace DensityBrot
 	public class RenderConfig
 	{
 		public IColorMap ColorMap;
+	}
+
+	//abstracting color in case someday i want to use a higer bit depth than 8bpp
+	public struct ColorD
+	{
+		public double R;
+		public double G;
+		public double B;
+		public double A;
+
+		ColorD(double a, double r, double g, double b)
+		{
+			A = a < 0.0 ? 0.0 : a > 1.0 ? 1.0 : a;
+			R = r < 0.0 ? 0.0 : r > 1.0 ? 1.0 : r;
+			G = g < 0.0 ? 0.0 : g > 1.0 ? 1.0 : g;
+			B = b < 0.0 ? 0.0 : b > 1.0 ? 1.0 : b;
+		}
+
+		public Color ToColor()
+		{
+			return Color.FromArgb((int)(255*A),(int)(255*R),(int)(255*G),(int)(255*B));
+		}
+		//public MagickColor ToMagickColor()
+		//{
+		//	//var m = new MagickColor();
+		//	//m.r
+		//}
+
+		public static ColorD FromArgb(double a,double r, double g, double b)
+		{
+			return new ColorD(a,r,g,b);
+		}
+		public static ColorD FromColor(Color c)
+		{
+			return new ColorD(c.A/255.0,c.R/255.0,c.G/255.0,c.B/255.0);
+		}
 	}
 }

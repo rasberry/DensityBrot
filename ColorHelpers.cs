@@ -31,9 +31,9 @@ namespace DensityBrot
 		}
 
 		//https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
-		public static Color HSLToRGB(double h, double s, double l)
+		public static void HSLToRGB(double h, double s, double l,out double r, out double g, out double b)
 		{
-			double r=0, g=0, b=0;
+			r = g = b = 0;
 			if (s == 0) {
 				r = g = b = l; //gray scale
 			} else {
@@ -43,12 +43,6 @@ namespace DensityBrot
 				g = HueToRGB(p, q, h);
 				b = HueToRGB(p, q, h - 1.0/3.0);
 			}
-
-			int ir = (int)Math.Round(r * 255.0);
-			int ig = (int)Math.Round(g * 255.0);
-			int ib = (int)Math.Round(b * 255.0);
-
-			return Color.FromArgb(ir,ig,ib);
 		}
 
 		static double HueToRGB(double p, double q, double t)

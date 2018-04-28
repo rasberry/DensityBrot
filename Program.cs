@@ -100,7 +100,7 @@ namespace DensityBrot
 				for (int x = 0; x < Width; x++)
 				{
 					double li = Math.Log(matrix[x,y]);
-					Color c = cm.GetColor(li, lm);
+					Color c = cm.GetColor(li, lm).ToColor();
 					img.SetPixel(x, y, c);
 				}
 			}
@@ -145,7 +145,7 @@ namespace DensityBrot
 				
 				for(int x=0; x<Width; x++)
 				{
-					Color c = cmap.GetColor(x,Width);
+					Color c = cmap.GetColor(x,Width).ToColor();
 					d.FillColor(c);
 					d.Line(x,0,x,Height-1);
 				}
