@@ -15,12 +15,19 @@ namespace DensityBrot
 		static void Main(string[] args)
 		{
 			MagickNET.SetTempDirectory(Environment.CurrentDirectory);
+			#if DEBUG
 			Debug.Listeners.Add(new ConsoleTraceListener());
+			#endif
 
 			try {
 				MainMain(args);
 			} catch(Exception e) {
-				Logger.PrintError(e.ToString());
+				#if DEBUG
+				string err = e.ToString();
+				#else
+				string err = e.Message;
+				#endif
+				Logger.PrintError(err);
 			}
 		}
 
