@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DensityBrot
 {
-	public interface IDensityMatrix
+	public interface IDensityMatrix : IDisposable
 	{
 		int Width { get; }
 		int Height { get; }
@@ -19,7 +19,7 @@ namespace DensityBrot
 		void SaveToFile(string name = null);
 	}
 
-	public class DensityMatrix : IDensityMatrix, IDisposable
+	public class DensityMatrix : IDensityMatrix
 	{
 		public DensityMatrix(int width, int height)
 		{

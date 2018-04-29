@@ -14,18 +14,26 @@ namespace DensityBrot
 		int Width { get; }
 		int Height { get; }
 		void SetPixel(int x,int y,ColorD c);
+		void SetPixelComponent(int x, int y, ColorComponent comp, double colorVal);
 		ColorD GetPixel(int x,int y);
 		void SavePng(string fileName);
 	}
 
 	public class MagicCanvas : ICanvas
 	{
-		public MagicCanvas(int width,int height)
+		public MagicCanvas(int width,int height, bool noAlpha = false)
 		{
-			bitmap = new MagickImage(MagickColors.Transparent,width,height);
-			bitmap.ColorType = ColorType.TrueColorAlpha;
-			bitmap.Alpha(AlphaOption.Transparent);
-			bitmap.ColorAlpha(MagickColors.Transparent);
+			var backColor = noAlpha
+				? MagickColors.Black
+				: MagickColors.Transparent
+			;
+
+			bitmap = new MagickImage(backColor,width,height);
+			if (!noAlpha) {
+				bitmap.ColorType = ColorType.TrueColorAlpha;
+				bitmap.Alpha(AlphaOption.Transparent);
+				bitmap.ColorAlpha(MagickColors.Transparent);
+			}
 		}
 
 		public int Width { get { return bitmap.Width; } }
@@ -42,6 +50,20 @@ namespace DensityBrot
 		{
 			Color sdc = c.ToColor();
 			var rgba = new byte[] { sdc.R, sdc.G, sdc.B, sdc.A };
+			Pixels.SetArea(x,y,1,1,rgba);
+		}
+
+		public void SetPixelComponent(int x, int y, ColorComponent comp, double colorVal)
+		{
+			var rgba = Pixels.GetArea(x,y,1,1);
+			byte bVal = (byte)(ColorHelpers.Clamp(colorVal) * 255.0);
+
+			switch(comp) {
+				case ColorComponent.A: rgba[3] = bVal; break;
+				case ColorComponent.R: rgba[0] = bVal; break;
+				case ColorComponent.G: rgba[1] = bVal; break;
+				case ColorComponent.B: rgba[2] = bVal; break;
+			}
 			Pixels.SetArea(x,y,1,1,rgba);
 		}
 

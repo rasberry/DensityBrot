@@ -10,12 +10,13 @@ namespace DensityBrot
 	{
 		public enum ProcessMode
 		{
-			Fractal = 0,
+			DensityBrot = 0,
 			CreateOrbits = 1,
-			TestColorMap = 2
+			TestColorMap = 2,
+			NebulaBrot = 3
 		}
 
-		public static ProcessMode Mode = ProcessMode.Fractal;
+		public static ProcessMode Mode = ProcessMode.DensityBrot;
 		public static int Width = -1;
 		public static int Height = -1;
 		public static string FileName = null;
@@ -27,11 +28,16 @@ namespace DensityBrot
 		public static int FractalMaxIter = 1000;
 		public static SomeColorMaps MapColors = SomeColorMaps.Gray;
 		public static string GgrFile = null;
+		public static bool HideEscaped = false;
+		public static bool HideContained = false;
+		public static int NebulaRIter = 5000;
+		public static int NebulaGIter = 500;
+		public static int NebulaBIter = 50;
 
 		public static bool ProcessArgs(string[] args)
 		{
 			bool showHelp = false;
-			bool noChecks = false;
+			bool skipChecks = false;
 			for(int a=0; a<args.Length; a++)
 			{
 				string c = args[a];
@@ -40,7 +46,7 @@ namespace DensityBrot
 				if (c == "--help" || c == "-h")
 				{
 					showHelp = true;
-					noChecks = true;
+					skipChecks = true;
 				}
 				else if (c == "-v")
 				{
@@ -81,6 +87,8 @@ namespace DensityBrot
 						showHelp = true;
 					}
 				}
+
+				//color map options
 				else if (c == "-cm" && ++a < args.Length)
 				{
 					if (!Enum.TryParse(args[a],true,out MapColors)) {
@@ -95,6 +103,20 @@ namespace DensityBrot
 				else if (c == "-testcm")
 				{
 					Mode = ProcessMode.TestColorMap;
+				}
+				else if (c == "-nb")
+				{
+					Mode = ProcessMode.NebulaBrot;
+					if (a+3 < args.Length) {
+						bool good = 
+							   int.TryParse(args[a+1],out int NebulaRIter)
+							&& int.TryParse(args[a+2],out int NebulaGIter)
+							&& int.TryParse(args[a+3],out int NebulaBIter)
+						;
+						if (good) {
+							a+=3;
+						}
+					}
 				}
 
 				// fractal options
@@ -114,6 +136,14 @@ namespace DensityBrot
 						showHelp = true;
 					}
 				}
+				else if (c == "-he")
+				{
+					HideEscaped = true;
+				}
+				else if (c == "-hc")
+				{
+					HideContained = true;
+				}
 
 				// filename
 				else
@@ -122,9 +152,9 @@ namespace DensityBrot
 				}
 			}
 
-			if (!noChecks)
+			if (!skipChecks)
 			{
-				if (Mode == ProcessMode.Fractal)
+				if (Mode == ProcessMode.DensityBrot || Mode == ProcessMode.NebulaBrot)
 				{
 					if (!CreateImage && !CreateMatrix) {
 						CreateMatrix = true; //default mode
@@ -148,12 +178,12 @@ namespace DensityBrot
 				else if (Mode == ProcessMode.TestColorMap)
 				{
 					if (Width < 1 && Height < 1) {
-						Width = 1024; Height= 256;
+						Width = 1024; Height = 256;
 					}
 				}
 
 				if (CreateMatrix && (Width < 1 || Height < 1)) {
-					Logger.PrintError("output image size is invalid");
+					Logger.PrintError("output image [" + Width + "," + Height + "] size is invalid");
 					showHelp = true;
 				}
 			}
@@ -165,17 +195,20 @@ namespace DensityBrot
 					sb.Append("  ").Append(mn).AppendLine();
 				}
 
-				Logger.PrintLine("\n"+nameof(DensityBrot)+" [options] (filename / prefix)"
+				Logger.PrintLine("\n"+nameof(DensityBrot)+" [options] (filename)"
 					+"\nOptions:"
 					+"\n --help / -h                       Show this help"
 					+"\n -v                                Print additional progress messages"
-					+"\n -m [filaneme]                     Create a density matrix file (this is the default)"
-					+"\n -i [filename]                     Read density matrix file and output an image"
+					+"\n -m                                Create a density matrix file (this is the default)"
+					+"\n -i                                Read density matrix file and output an image"
 					+"\n                                     if -m is also specified both files will be created"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 200. 400 = 2x bigger)"
 					+"\n -o                                Output orbits instead of dentisy plot"
 					+"\n                                    (Warning: produces one image per coordinate)"
+					+"\n\nColor Options:"
+					+"\n -nb [r-iter g-iter b-iter]        Use nebulabrot coloring (default is 5000 500 50)"
+					+"\n                                    (Warning: this creates / requires 3 density matrix files)"
 					+"\n -cm (name)                        Use buit-in color map model (Gray is default)"
 					+"\n -ggr (ggr file)                   Use a GIMP ggr colormap file for the color map model"
 					+"\n -testcm                           Tests a colormap by saving a colormap image instead of a fractal"
@@ -184,6 +217,8 @@ namespace DensityBrot
 					+"\nFractal Controls:"
 					+"\n -fe (number)                      escape value (default 4.0)"
 					+"\n -fi (number)                      maximum number of iterations (default 1000)"
+					+"\n -he                               hide escaped orbits"
+					+"\n -hc                               hide contained orbits"
 				);
 			}
 			return !showHelp;

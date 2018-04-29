@@ -92,5 +92,19 @@ namespace DensityBrot
 				case 5: r = v; g = p; b = q; break;
 			}
 		}
+
+		public static double Clamp(double n)
+		{
+			return
+			n < 0.0
+				? 0.0
+			: n > 1.0
+				? 1.0
+			: double.IsNaN(n)
+				? 0.0
+			: double.IsInfinity(n)
+				? 0.0
+			: n ;
+		}
 	}
 }

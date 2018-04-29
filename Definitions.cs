@@ -36,10 +36,7 @@ namespace DensityBrot
 		}}
 	}
 
-	public class RenderConfig
-	{
-		public IColorMap ColorMap;
-	}
+	public enum ColorComponent { None = 0, R, G ,B, A }
 
 	//abstracting color in case someday i want to use a higer bit depth than 8bpp
 	public struct ColorD
@@ -51,24 +48,10 @@ namespace DensityBrot
 
 		ColorD(double a, double r, double g, double b)
 		{
-			A = Clamp(a);
-			R = Clamp(r);
-			G = Clamp(g);
-			B = Clamp(b);
-		}
-
-		static double Clamp(double n)
-		{
-			return
-			n < 0.0
-				? 0.0
-			: n > 1.0
-				? 1.0
-			: double.IsNaN(n)
-				? 0.0
-			: double.IsInfinity(n)
-				? 0.0
-			: n ;
+			A = ColorHelpers.Clamp(a);
+			R = ColorHelpers.Clamp(r);
+			G = ColorHelpers.Clamp(g);
+			B = ColorHelpers.Clamp(b);
 		}
 
 		public Color ToColor()
@@ -80,6 +63,18 @@ namespace DensityBrot
 		//	//var m = new MagickColor();
 		//	//m.r
 		//}
+
+		public double GetComponent(ColorComponent comp)
+		{
+			switch(comp)
+			{
+			case ColorComponent.A: return A;
+			case ColorComponent.R: return R;
+			case ColorComponent.G: return G;
+			case ColorComponent.B: return B;
+			}
+			return 0.0;
+		}
 
 		public static ColorD FromArgb(double a,double r, double g, double b)
 		{

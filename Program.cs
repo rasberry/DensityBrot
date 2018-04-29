@@ -38,13 +38,14 @@ namespace DensityBrot
 
 			switch(Options.Mode)
 			{
-			case Options.ProcessMode.Fractal: CreateFractal(); break;
+			case Options.ProcessMode.DensityBrot: CreateDensityBrot(); break;
 			case Options.ProcessMode.CreateOrbits: ProduceOrbits(); break;
 			case Options.ProcessMode.TestColorMap: CreateColorMapTest(); break;
+			case Options.ProcessMode.NebulaBrot: CreateNebulaBrot(); break;
 			}
 		}
 
-		static void CreateFractal()
+		static void CreateDensityBrot()
 		{
 			var conf = new FractalConfig {
 				Escape = Options.FractalEscape,
@@ -53,7 +54,9 @@ namespace DensityBrot
 				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
 				IterMax = Options.FractalMaxIter,
 				OffsetX = Options.Width/2,
-				OffsetY = Options.Height/2
+				OffsetY = Options.Height/2,
+				HideEscaped = Options.HideEscaped,
+				HideContained = Options.HideContained
 			};
 
 			DensityMatrix matrix = null;
@@ -61,9 +64,12 @@ namespace DensityBrot
 			{
 				if (Options.CreateMatrix) {
 					matrix = DoCreateMatrix(conf);
+				} else {
+					matrix = LoadMatrix();
 				}
+
 				if (Options.CreateImage) {
-					matrix = DoCreateImage(matrix);
+					DoCreateImage(matrix);
 				}
 			}
 			finally
@@ -74,49 +80,73 @@ namespace DensityBrot
 			}
 		}
 
-		static DensityMatrix DoCreateMatrix(FractalConfig conf)
+		static DensityMatrix DoCreateMatrix(FractalConfig conf, string name = null)
 		{
 			DensityMatrix matrix = new DensityMatrix(Options.Width, Options.Height);
 			var builder = new FractalBuilder(matrix, conf);
-			Logger.PrintInfo("building matrix");
+			string n = EnsureEndsWith(name ?? Options.FileName, ".dm");
+			Logger.PrintInfo("building matrix [" + n + "]");
 			builder.Build();
-			string n = EnsureEndsWith(Options.FileName, ".dm");
 			Logger.PrintInfo("saving matrix file [" + n + "]");
 			matrix.SaveToFile(n);
 			return matrix;
 		}
 
-		static DensityMatrix DoCreateImage(DensityMatrix matrix)
+		static void DoCreateImage(IDensityMatrix matrix)
 		{
-			if (matrix == null)
-			{
-				string a = EnsureEndsWith(Options.FileName, ".dm");
-				Logger.PrintInfo("loading matrix file [" + a + "]");
-				matrix = new DensityMatrix(a);
-				Options.Width = matrix.Width;
-				Options.Height = matrix.Height;
-			}
-
 			Logger.PrintInfo("matrix = [" + matrix.Width + "x" + matrix.Height + " " + matrix.Maximum + "]");
 			IColorMap cm = GetColorMap(out string _);
 			using (var img = new MagicCanvas(Options.Width, Options.Height))
 			{
 				Logger.PrintInfo("building image");
-				double lm = Math.Log(matrix.Maximum);
-				for (int y = 0; y < Options.Height; y++)
+				PaintImageData(matrix, cm, img);
+
+				SaveCanvas(img);
+			}
+		}
+
+		static void SaveCanvas(ICanvas img)
+		{
+			string n = EnsureEndsWith(Options.FileName, ".png");
+			Logger.PrintInfo("saving image file [" + n + "]");
+			img.SavePng(n);
+		}
+
+		static void DrawToImageComponent(ICanvas img, IDensityMatrix matrix, ColorComponent comp)
+		{
+			Logger.PrintInfo("matrix = [" + matrix.Width + "x" + matrix.Height + " " + matrix.Maximum + "]");
+			IColorMap cm = new GrayColorMap();
+			Logger.PrintInfo("drawing component '"+comp+"'");
+			PaintImageData(matrix, cm, img, comp);
+		}
+
+		private static DensityMatrix LoadMatrix(string name = null)
+		{
+			DensityMatrix matrix;
+			string a = EnsureEndsWith(name ?? Options.FileName, ".dm");
+			Logger.PrintInfo("loading matrix file [" + a + "]");
+			matrix = new DensityMatrix(a);
+			Options.Width = matrix.Width;
+			Options.Height = matrix.Height;
+			return matrix;
+		}
+
+		static void PaintImageData(IDensityMatrix matrix, IColorMap cm, ICanvas img, ColorComponent comp = ColorComponent.None)
+		{
+			double lm = Math.Log(matrix.Maximum);
+			for (int y = 0; y < Options.Height; y++)
+			{
+				for (int x = 0; x < Options.Width; x++)
 				{
-					for (int x = 0; x < Options.Width; x++)
-					{
-						double li = Math.Log(matrix[x,y]);
-						ColorD c = cm.GetColor(li, lm);
+					double li = Math.Log(matrix[x, y]);
+					ColorD c = cm.GetColor(li, lm);
+					if (comp != ColorComponent.None) {
+						img.SetPixelComponent(x,y,comp,c.GetComponent(comp));
+					} else {
 						img.SetPixel(x, y, c);
 					}
 				}
-				string n = EnsureEndsWith(Options.FileName, ".png");
-				Logger.PrintInfo("saving image file [" + n + "]");
-				img.SavePng(n);
 			}
-			return matrix;
 		}
 
 		static string EnsureEndsWith(string name,string ext)
@@ -157,6 +187,52 @@ namespace DensityBrot
 				name = Options.MapColors.ToString();
 			}
 			return cmap;
+		}
+
+		static void CreateNebulaBrot()
+		{
+			using (var matrixR = CreateNebulaBrotMatrix("-r",Options.NebulaRIter,ColorComponent.R))
+			using (var matrixG = CreateNebulaBrotMatrix("-g",Options.NebulaGIter,ColorComponent.G))
+			using (var matrixB = CreateNebulaBrotMatrix("-b",Options.NebulaBIter,ColorComponent.B))
+			{
+				if (!Options.CreateImage) { return; }
+				using (var canvas = new MagicCanvas(Options.Width,Options.Height,true))
+				{
+					DrawToImageComponent(canvas,matrixR,ColorComponent.R);
+					DrawToImageComponent(canvas,matrixG,ColorComponent.G);
+					DrawToImageComponent(canvas,matrixB,ColorComponent.B);
+
+					SaveCanvas(canvas);
+				}
+			}
+		}
+
+		static IDensityMatrix CreateNebulaBrotMatrix(string suffix, int iters, ColorComponent comp)
+		{
+			var conf = new FractalConfig {
+				Escape = Options.FractalEscape,
+				Plane = Planes.XY,
+				Resolution = Options.Resolution,
+				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
+				IterMax = iters,
+				OffsetX = Options.Width/2,
+				OffsetY = Options.Height/2,
+				HideEscaped = Options.HideEscaped,
+				HideContained = Options.HideContained
+			};
+
+			DensityMatrix matrix = null;
+			string mname = Path.Combine(
+				Path.GetDirectoryName(Options.FileName),
+				Path.GetFileNameWithoutExtension(Options.FileName) + suffix + ".dm"
+			);
+
+			if (Options.CreateMatrix) {
+				matrix = DoCreateMatrix(conf, mname);
+			} else {
+				matrix = LoadMatrix(mname);
+			}
+			return matrix;
 		}
 	}
 }

@@ -82,8 +82,8 @@ namespace DensityBrot
 			InitZC(conf,x,y,wth,hth,out z,out c);
 			Complex[] points = new Complex[conf.IterMax];;
 			int escapeiter = FillOrbit(points,conf.IterMax,z,c,conf.Escape,out bool didesc);
-			bool draw = conf.HideEscaped && didesc || conf.HideContained && !didesc;
-			//if (!draw) { return; }
+			bool hide = conf.HideEscaped && didesc || conf.HideContained && !didesc;
+			if (hide) { return; }
 
 			for(int iter = 0; iter < escapeiter; iter++)
 			{
