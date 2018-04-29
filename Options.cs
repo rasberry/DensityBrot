@@ -24,8 +24,13 @@ namespace DensityBrot
 		public static bool ShowVerbose = false;
 		public static bool CreateMatrix = false;
 		public static bool CreateImage = false;
+
+		//fractal options
 		public static double FractalEscape = 2.0;
 		public static int FractalMaxIter = 1000;
+		public static int FractalSamples = 1;
+
+		//color map options
 		public static SomeColorMaps MapColors = SomeColorMaps.Gray;
 		public static string GgrFile = null;
 		public static bool HideEscaped = false;
@@ -33,6 +38,7 @@ namespace DensityBrot
 		public static int NebulaRIter = 5000;
 		public static int NebulaGIter = 500;
 		public static int NebulaBIter = 50;
+		
 
 		public static bool ProcessArgs(string[] args)
 		{
@@ -136,6 +142,14 @@ namespace DensityBrot
 						showHelp = true;
 					}
 				}
+				else if (c == "-fs" && ++a < args.Length)
+				{
+					string samp = args[a];
+					if (!int.TryParse(samp,out FractalSamples) || FractalSamples <= 0) {
+						Logger.PrintError("Invalid number of samples "+samp);
+						showHelp = true;
+					}
+				}
 				else if (c == "-he")
 				{
 					HideEscaped = true;
@@ -218,6 +232,7 @@ namespace DensityBrot
 					+"\nFractal Controls:"
 					+"\n -fe (number)                      escape value (default 4.0)"
 					+"\n -fi (number)                      maximum number of iterations (default 1000)"
+					+"\n -fs (number)                      number of samples per pixel (defualt 1)"
 					+"\n -he                               hide escaped orbits"
 					+"\n -hc                               hide contained orbits"
 				);

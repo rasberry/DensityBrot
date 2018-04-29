@@ -47,19 +47,7 @@ namespace DensityBrot
 
 		static void CreateDensityBrot()
 		{
-			var conf = new FractalConfig {
-				Escape = Options.FractalEscape,
-				Plane = Planes.XY,
-				Resolution = Options.Resolution,
-				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
-				IterMax = Options.FractalMaxIter,
-				OffsetX = 0.0,
-				OffsetY = 0.0,
-				HideEscaped = Options.HideEscaped,
-				HideContained = Options.HideContained,
-				SamplesPerPoint = 10
-			};
-
+			var conf = GetNormalFractalConfig();
 			DensityMatrix matrix = null;
 			try
 			{
@@ -79,6 +67,23 @@ namespace DensityBrot
 					matrix.Dispose();
 				}
 			}
+		}
+
+		static FractalConfig GetNormalFractalConfig()
+		{
+			var conf = new FractalConfig {
+				Escape = Options.FractalEscape,
+				Plane = Planes.XY,
+				Resolution = Options.Resolution,
+				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
+				IterMax = Options.FractalMaxIter,
+				OffsetX = 0.0,
+				OffsetY = 0.0,
+				HideEscaped = Options.HideEscaped,
+				HideContained = Options.HideContained,
+				SamplesPerPoint = Options.FractalSamples
+			};
+			return conf;
 		}
 
 		static DensityMatrix DoCreateMatrix(FractalConfig conf, string name = null)
@@ -135,16 +140,77 @@ namespace DensityBrot
 		static void PaintImageData(IDensityMatrix matrix, IColorMap cm, ICanvas img, ColorComponent comp = ColorComponent.None)
 		{
 			double lm = matrix.Maximum;
+			
+			// find minimum method
 			double ln = double.MaxValue;
-
-			for (int y = 0; y < Options.Height; y++) {
-				for (int x = 0; x < Options.Width; x++) {
+			for (int y = 1; y < Options.Height - 1; y++) {
+				for (int x = 1; x < Options.Width - 1; x++) {
 					double li = matrix[x, y];
 					if (li > 0.0 && li < ln) { ln = li; }
 				}
 			}
-
 			Debug.WriteLine("ln = "+ln);
+
+			//chop at most frequent value
+			//double hmax = 0.0;
+			//int cmax = 0;
+			//var histogram = new Dictionary<double,int>();
+			//for (int y = 1; y < Options.Height - 1; y++) {
+			//	for (int x = 1; x < Options.Width - 1; x++) {
+			//		double li = matrix[x, y];
+			//		if (li < double.Epsilon || double.IsInfinity(li) || double.IsNaN(li)) { continue; }
+			//		if (!histogram.TryGetValue(li,out int val)) {
+			//			val = 1;
+			//		} else {
+			//			val++;
+			//		}
+			//		if (val > cmax) {
+			//			cmax = val;
+			//			hmax = li;
+			//		}
+			//		histogram[li] = val;
+			//	}
+			//}
+			// Debug.WriteLine("hmax = "+hmax+" cmax = "+cmax);
+
+			//find minimum method using average of blocks
+			//double ln = double.MaxValue;
+			//int aspect = 32;
+			//int aw = (Options.Width - 1) / aspect;
+			//int ah = (Options.Height - 1) / aspect;
+			//for (int ay = 1; ay < ah; ay++) {
+			//	for (int ax = 1; ax < aw; ax++) {
+			//		int ys = ay * aspect; int ye = ys + aspect - 1;
+			//		int xs = ax * aspect; int xe = xs + aspect - 1;
+			//		double avg = 0.0;
+			//		for(int y = ys; y < ye; y++) {
+			//			for(int x = xs; x < xe; x++) {
+			//				if (x >= 0 && x < Options.Width && y >=0 && y < Options.Height) {
+			//					double li = matrix[x, y];
+			//					avg += li;
+			//				}
+			//			}
+			//		}
+			//		avg /= (aspect * aspect);
+			//		if (avg > 0.0 && avg < ln) { ln = avg; }
+			//	}
+			//}
+			//Debug.WriteLine("ln = "+ln);
+
+			//find average method
+			//double total = 0.0;
+			//long count = 0;
+			//for (int y = 1; y < Options.Height - 1; y++) {
+			//	for (int x = 1; x < Options.Width - 1; x++) {
+			//		double li = matrix[x, y];
+			//		if (li >= 0.0 && !double.IsInfinity(li) && !double.IsNaN(li)) {
+			//			total += li;
+			//			count++;
+			//		}
+			//	}
+			//}
+			//double ln = total / count;
+			//Debug.WriteLine("ln = "+ln);
 
 			for (int y = 0; y < Options.Height; y++) {
 				for (int x = 0; x < Options.Width; x++) {
@@ -219,17 +285,8 @@ namespace DensityBrot
 
 		static IDensityMatrix CreateNebulaBrotMatrix(string suffix, int iters, ColorComponent comp)
 		{
-			var conf = new FractalConfig {
-				Escape = Options.FractalEscape,
-				Plane = Planes.XY,
-				Resolution = Options.Resolution,
-				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
-				IterMax = iters,
-				//OffsetX = Options.Width/2,
-				//OffsetY = Options.Height/2,
-				HideEscaped = Options.HideEscaped,
-				HideContained = Options.HideContained
-			};
+			var conf = GetNormalFractalConfig();
+			conf.IterMax = iters;
 
 			DensityMatrix matrix = null;
 			string mname = Path.Combine(

@@ -69,6 +69,7 @@
     <Compile Include="FractalBuilder.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LRUCache.cs" />
+    <Compile Include="LFSR.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

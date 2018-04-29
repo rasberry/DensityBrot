@@ -17,8 +17,6 @@ namespace DensityBrot
 		}
 
 		public IDensityMatrix Matrix { get; set; }
-		public int Width { get { return Matrix.Width; }}
-		public int Height  { get { return Matrix.Height; }}
 		FractalConfig config;
 
 		public void Build()
@@ -28,19 +26,25 @@ namespace DensityBrot
 			double sampleRadH = config.Resolution / Options.Height;
 			double sampleRadWhalf = sampleRadW / 2;
 			double sampleRadHhalf = sampleRadH / 2;
+			//RectangleD escapeBounds = new RectangleD(
+			//	- config.Escape + config.OffsetX - 2 * sampleRadW,
+			//	- config.Escape + config.OffsetY - 2 * sampleRadH,
+			//	2 * config.Escape + 2 * sampleRadW,
+			//	2 * config.Escape + 2 * sampleRadH
+			//);
 			
-			for(int y = 0; y<Height; y++) {
-				for(int x = 0; x<Width; x++) {
+			for(int y = 0; y<Options.Height; y++) {
+				for(int x = 0; x<Options.Width; x++) {
 					var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
 					for(int s = 0; s<config.SamplesPerPoint; s++) {
 						double nx = sampleRadW * rnd.NextDouble() - sampleRadWhalf;
 						double ny = sampleRadH * rnd.NextDouble() - sampleRadHhalf;
-						RenderPart(config,x,y,Width,Height,Matrix,new Complex(nx,ny));
+						RenderPart(config,x,y,Options.Width,Options.Height,Matrix,new Complex(nx,ny));
 					}
 				}
 				if (sw.ElapsedMilliseconds > 1000) {
 					sw.Restart();
-					Logger.PrintInfo("progress "+y+" out of "+Height);
+					Logger.PrintInfo("progress "+y+" out of "+Options.Height);
 				}
 			}
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
@@ -90,7 +94,7 @@ namespace DensityBrot
 				Complex f = points[iter];
 				int bx = WorldToWin(f.Real,conf.Resolution,wth,conf.OffsetX);
 				int by = WorldToWin(f.Imaginary,conf.Resolution,hth,conf.OffsetY);
-				if (bx > 0 && bx < wth && by > 0 && by < hth) {
+				if (bx >= 0 && bx < wth && by >= 0 && by < hth) {
 					data.Touch(bx,by);
 				}
 			}
@@ -101,17 +105,11 @@ namespace DensityBrot
 			didEscape = false;
 			int iter;
 			for(iter = 0; iter < itermax; iter++) {
-
 				z = z*z + c;
 				points[iter] = z;
-
-				//TODO pass in a rectangle instead of using escape
-				//  need to add -res/width to the less than sides because image has a top and left black pixel line
-				//var dist = z.Magnitude;
-				if (z.Real < -escape || z.Real > escape || z.Imaginary < -escape || z.Imaginary > escape) {
-				//if (dist > escape || double.IsNaN(dist) || double.IsInfinity(dist)) {
+				var dist = z.Magnitude;
+				if (dist > escape || double.IsNaN(dist) || double.IsInfinity(dist)) {
 					didEscape = true;
-					//dist = -1;
 					break;
 				}
 			}
@@ -130,6 +128,51 @@ namespace DensityBrot
 			//return (int)Math.Round(v * magnify) + offset;
 		}
 
+		struct RectangleD
+		{
+			public RectangleD(double x,double y,double width,double height)
+			{
+				X = x; Y = y; Width = width; Height = height;
+			}
+
+			public double X;
+			public double Y;
+			public double Width;
+			public double Height;
+
+			public double Bottom { get { return Y + Height; }}
+			public double Top { get { return Y; }}
+			public double Left { get { return X; }}
+			public double Right { get { return X + Width; }}
+
+			public bool Contains(double x, double y)
+			{
+				return X <= x && x < X + Width && Y <= y && y < Y + Height;
+			}
+
+		}
+
+		class UniqueRandom
+		{
+			public UniqueRandom(int count)
+			{
+				this.count = count;
+				var rnd = LinearFeedbackShiftRegister.SequenceLength(1301u,(ulong)count);
+				enumerator = rnd.GetEnumerator();
+			}
+
+			int count;
+			IEnumerator<ulong> enumerator;
+
+			public double NextDouble()
+			{
+				enumerator.MoveNext();
+				ulong v = enumerator.Current;
+				return (double)v / count;
+			}
+		}
+
+		#if false
 		class UniqueRandom
 		{
 			public UniqueRandom(int count)
@@ -155,5 +198,6 @@ namespace DensityBrot
 				return (double)tmp / count;
 			}
 		}
+		#endif
 	}
 }

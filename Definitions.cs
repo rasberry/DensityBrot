@@ -33,7 +33,7 @@ namespace DensityBrot
 				IterMax = 100,
 				HideContained = false,
 				HideEscaped = false,
-				SamplesPerPoint = 10
+				SamplesPerPoint = 2
 			};
 		}}
 	}
