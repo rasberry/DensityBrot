@@ -53,10 +53,11 @@ namespace DensityBrot
 				Resolution = Options.Resolution,
 				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
 				IterMax = Options.FractalMaxIter,
-				OffsetX = Options.Width/2,
-				OffsetY = Options.Height/2,
+				OffsetX = 0.0,
+				OffsetY = 0.0,
 				HideEscaped = Options.HideEscaped,
-				HideContained = Options.HideContained
+				HideContained = Options.HideContained,
+				SamplesPerPoint = 10
 			};
 
 			DensityMatrix matrix = null;
@@ -133,13 +134,22 @@ namespace DensityBrot
 
 		static void PaintImageData(IDensityMatrix matrix, IColorMap cm, ICanvas img, ColorComponent comp = ColorComponent.None)
 		{
-			double lm = Math.Log(matrix.Maximum);
-			for (int y = 0; y < Options.Height; y++)
-			{
-				for (int x = 0; x < Options.Width; x++)
-				{
-					double li = Math.Log(matrix[x, y]);
-					ColorD c = cm.GetColor(li, lm);
+			double lm = matrix.Maximum;
+			double ln = double.MaxValue;
+
+			for (int y = 0; y < Options.Height; y++) {
+				for (int x = 0; x < Options.Width; x++) {
+					double li = matrix[x, y];
+					if (li > 0.0 && li < ln) { ln = li; }
+				}
+			}
+
+			Debug.WriteLine("ln = "+ln);
+
+			for (int y = 0; y < Options.Height; y++) {
+				for (int x = 0; x < Options.Width; x++) {
+					double li = matrix[x, y];
+					ColorD c = cm.GetColor(li - ln, lm - ln);
 					if (comp != ColorComponent.None) {
 						img.SetPixelComponent(x,y,comp,c.GetComponent(comp));
 					} else {
@@ -215,8 +225,8 @@ namespace DensityBrot
 				Resolution = Options.Resolution,
 				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
 				IterMax = iters,
-				OffsetX = Options.Width/2,
-				OffsetY = Options.Height/2,
+				//OffsetX = Options.Width/2,
+				//OffsetY = Options.Height/2,
 				HideEscaped = Options.HideEscaped,
 				HideContained = Options.HideContained
 			};

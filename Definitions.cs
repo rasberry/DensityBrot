@@ -17,10 +17,11 @@ namespace DensityBrot
 		public double Resolution;
 		public double Escape;
 		public int IterMax;
-		public int OffsetX;
-		public int OffsetY;
+		public double OffsetX;
+		public double OffsetY;
 		public bool HideEscaped;
 		public bool HideContained;
+		public int SamplesPerPoint;
 
 		public static FractalConfig Default { get {
 			return new FractalConfig {
@@ -31,7 +32,8 @@ namespace DensityBrot
 				Escape = 4.0,
 				IterMax = 100,
 				HideContained = false,
-				HideEscaped = false
+				HideEscaped = false,
+				SamplesPerPoint = 10
 			};
 		}}
 	}

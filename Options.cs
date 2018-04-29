@@ -20,11 +20,11 @@ namespace DensityBrot
 		public static int Width = -1;
 		public static int Height = -1;
 		public static string FileName = null;
-		public static double Resolution = 200;
+		public static double Resolution = 4.0;
 		public static bool ShowVerbose = false;
 		public static bool CreateMatrix = false;
 		public static bool CreateImage = false;
-		public static double FractalEscape = 4;
+		public static double FractalEscape = 2.0;
 		public static int FractalMaxIter = 1000;
 		public static SomeColorMaps MapColors = SomeColorMaps.Gray;
 		public static string GgrFile = null;
@@ -168,7 +168,8 @@ namespace DensityBrot
 						showHelp = true;
 					}
 					if (CreateMatrix && Width < 1 && Height < 1) {
-						Width = Height = (int)Math.Ceiling(2 * FractalEscape * Resolution);
+						//Width = Height = (int)Math.Ceiling(2 * FractalEscape * Resolution);
+						Width = Height = 800;
 					}
 					if (CreateMatrix && Resolution < double.Epsilon) {
 						Logger.PrintError("Resolution must be greater than zero");
@@ -203,7 +204,7 @@ namespace DensityBrot
 					+"\n -i                                Read density matrix file and output an image"
 					+"\n                                     if -m is also specified both files will be created"
 					+"\n -d (width) (height)               Size of image output images in pixels"
-					+"\n -r (resolution)                   Scale factor (Default: 200. 400 = 2x bigger)"
+					+"\n -r (resolution)                   Scale factor (Default: 4.0; 2.0 = 2x bigger)"
 					+"\n -o                                Output orbits instead of dentisy plot"
 					+"\n                                    (Warning: produces one image per coordinate)"
 					+"\n\nColor Options:"

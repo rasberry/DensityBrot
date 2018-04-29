@@ -18,7 +18,7 @@ namespace DensityBrot
 	{
 		public ColorD GetColor(double index, double maximum)
 		{
-			double pct = index / maximum;
+			double pct = Math.Log(1 + index) / Math.Log(1 + maximum);
 			return ColorD.FromArgb(1.0,pct,pct,pct);
 		}
 	}
