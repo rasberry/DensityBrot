@@ -157,8 +157,12 @@ namespace DensityBrot
 			public UniqueRandom(int count)
 			{
 				this.count = count;
-				var rnd = LinearFeedbackShiftRegister.SequenceLength(1301u,(ulong)count);
-				enumerator = rnd.GetEnumerator();
+				if (count < 3) {
+					enumerator = EdgeCaseEnumerator(count);
+				} else {
+					var rnd = LinearFeedbackShiftRegister.SequenceLength(1301u,(ulong)count,true);
+					enumerator = rnd.GetEnumerator();
+				}
 			}
 
 			int count;
@@ -170,34 +174,14 @@ namespace DensityBrot
 				ulong v = enumerator.Current;
 				return (double)v / count;
 			}
-		}
 
-		#if false
-		class UniqueRandom
-		{
-			public UniqueRandom(int count)
+			static IEnumerator<ulong> EdgeCaseEnumerator(int count)
 			{
-				this.count = count;
-				list = new List<int>(count);
-				for(int i = 0; i<count; i++) {
-					list.Add(i);
+				ulong i = 0;
+				while(true) {
+					yield return i = (i + 1) % (ulong)count;
 				}
 			}
-
-			List<int> list;
-			Random rnd = new Random(1301);
-			int count;
-
-			public double NextDouble()
-			{
-				int len = list.Count;
-				int nexti = rnd.Next(0,len);
-				int tmp = list[nexti];
-				list[nexti] = list[len-1];
-				list.RemoveAt(len - 1);
-				return (double)tmp / count;
-			}
 		}
-		#endif
 	}
 }

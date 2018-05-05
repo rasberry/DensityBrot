@@ -60,11 +60,12 @@ namespace DensityBrot
 		{
 			return Color.FromArgb((int)(255*A),(int)(255*R),(int)(255*G),(int)(255*B));
 		}
-		//public MagickColor ToMagickColor()
-		//{
-		//	//var m = new MagickColor();
-		//	//m.r
-		//}
+		
+		public MagickColor ToMagickColor()
+		{
+			var m = new MagickColor((byte)(255*A),(byte)(255*R),(byte)(255*G),(byte)(255*B));
+			return m;
+		}
 
 		public double GetComponent(ColorComponent comp)
 		{

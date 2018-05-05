@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
+//using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -69,7 +69,7 @@ namespace DensityBrot
 
 		public void DrawLine(ColorD color,double x1, double y1,double x2, double y2)
 		{
-			Draws.FillColor(color.ToColor());
+			Draws.FillColor(color.ToMagickColor());
 			Draws.Line(x1,y1,x2,y2);
 		}
 

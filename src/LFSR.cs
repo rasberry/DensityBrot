@@ -113,7 +113,7 @@ namespace DensityBrot
 				case 63: return 0b110000000000000000000000000000000000000000000000000000000000000;
 				case 64: return 0b1101100000000000000000000000000000000000000000000000000000000000;
 			}
-			throw new ArgumentOutOfRangeException();
+			throw new ArgumentOutOfRangeException("bad bit length "+bitLength);
 		}
 	}
 }

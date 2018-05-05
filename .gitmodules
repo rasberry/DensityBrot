@@ -1,3 +1,4 @@
 [submodule "HugeStructures"]
 	path = HugeStructures
 	url = git@github.com:rasberry/HugeStructures.git
+	branch = dotnetcore

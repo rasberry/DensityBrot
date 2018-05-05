@@ -16,7 +16,7 @@ namespace DensityBrot
 		{
 			MagickNET.SetTempDirectory(Environment.CurrentDirectory);
 			#if DEBUG
-			Debug.Listeners.Add(new ConsoleTraceListener());
+			Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 			#endif
 
 			try {

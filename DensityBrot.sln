@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DensityBrot", "DensityBrot.csproj", "{142D3017-8D97-4A9D-B9CD-B9442A51AAD6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DensityBrot", "src\DensityBrot.csproj", "{142D3017-8D97-4A9D-B9CD-B9442A51AAD6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HugeStructures", "HugeStructures\src\HugeStructures.csproj", "{A51CC5AC-1B55-43A3-A941-6DE2BA43DEB0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaptorDB", "HugeStructures\src\RaptorDB\RaptorDB.csproj", "{45F6BE30-989A-4749-B6A0-69099C8661F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
