@@ -22,10 +22,10 @@ namespace DensityBrot
 		public void Build()
 		{
 			var sw = Stopwatch.StartNew();
-			double sampleRadW = config.Resolution / Options.Width;
-			double sampleRadH = config.Resolution / Options.Height;
-			double sampleRadWhalf = sampleRadW / 2;
-			double sampleRadHhalf = sampleRadH / 2;
+			// double sampleRadW = config.Resolution / Options.Width;
+			// double sampleRadH = config.Resolution / Options.Height;
+			// double sampleRadWhalf = sampleRadW / 2;
+			// double sampleRadHhalf = sampleRadH / 2;
 			//RectangleD escapeBounds = new RectangleD(
 			//	- config.Escape + config.OffsetX - 2 * sampleRadW,
 			//	- config.Escape + config.OffsetY - 2 * sampleRadH,
@@ -35,11 +35,12 @@ namespace DensityBrot
 			
 			for(int y = 0; y<Options.Height; y++) {
 				for(int x = 0; x<Options.Width; x++) {
-					var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
+					//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
+					var rnd = new Random();
 					for(int s = 0; s<config.SamplesPerPoint; s++) {
-						double nx = sampleRadW * rnd.NextDouble() - sampleRadWhalf;
-						double ny = sampleRadH * rnd.NextDouble() - sampleRadHhalf;
-						RenderPart(config,x,y,Options.Width,Options.Height,Matrix,new Complex(nx,ny));
+						double nx = 1.0 * rnd.NextDouble() - 0.5;
+						double ny = 1.0 * rnd.NextDouble() - 0.5;
+						RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
 					}
 				}
 				if (sw.ElapsedMilliseconds > 1000) {
@@ -50,7 +51,7 @@ namespace DensityBrot
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
 		}
 
-		static void InitZC(FractalConfig conf, int x, int y, int wth, int hth, Complex pert, out Complex z, out Complex c)
+		static void InitZC(FractalConfig conf, double x, double y, int wth, int hth, out Complex z, out Complex c)
 		{
 			double cx = WinToWorld(x, conf.Resolution, wth, conf.OffsetX);
 			double cy = WinToWorld(y, conf.Resolution, hth, conf.OffsetY);
@@ -58,7 +59,7 @@ namespace DensityBrot
 			switch(conf.Plane)
 			{
 			case Planes.XY: default:
-				c = new Complex(cx,cy) + pert;
+				c = new Complex(cx,cy);
 				z = new Complex(conf.X,conf.Y); break;
 			case Planes.XW:
 				c = new Complex(conf.W,cy);
@@ -78,12 +79,12 @@ namespace DensityBrot
 			}
 		}
 		
-		static void RenderPart(FractalConfig conf, int x, int y, int wth, int hth, IDensityMatrix data, Complex pert)
+		static void RenderPart(FractalConfig conf, double x, double y, int wth, int hth, IDensityMatrix data)
 		{
 			//http://www.physics.emory.edu/faculty/weeks/software/mandel.c
 
 			Complex z,c;
-			InitZC(conf,x,y,wth,hth,pert,out z,out c);
+			InitZC(conf,x,y,wth,hth,out z,out c);
 			Complex[] points = new Complex[conf.IterMax];
 			int escapeiter = FillOrbit(points,conf.IterMax,z,c,conf.Escape,out bool didesc);
 			bool hide = conf.HideEscaped && didesc || conf.HideContained && !didesc;
@@ -116,7 +117,7 @@ namespace DensityBrot
 			return iter;
 		}
 
-		static double WinToWorld(int v, double magnify, int res, double offset)
+		static double WinToWorld(double v, double magnify, int res, double offset)
 		{
 			return magnify / res * v - (magnify / 2 - offset);
 			// return (v - offset) / magnify;
