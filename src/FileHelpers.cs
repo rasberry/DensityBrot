@@ -45,11 +45,11 @@ namespace DensityBrot
 			int len = FileHelpers.SizeOf<T>();
 			byte[] buff = new byte[len];
 			int read = s.Read(buff,0,len);
-			FileHelpers.BytesToValue(buff,out val);
+			BytesToValue(buff,out val);
 			return read;
 		}
 
-		public static void BytesToValue<T>(byte[] data, out T val)
+		static void BytesToValue<T>(byte[] data, out T val)
 		{
 			var tc = Type.GetTypeCode(typeof(T));
 			switch(tc)
@@ -92,7 +92,7 @@ namespace DensityBrot
 				throw new NotSupportedException(typeof(T).FullName+" is not supported");
 			}
 		}
-		public static int SizeOf<T>()
+		static int SizeOf<T>()
 		{
 			var tc = Type.GetTypeCode(typeof(T));
 			switch(tc)
