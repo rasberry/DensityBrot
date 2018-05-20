@@ -2,41 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DensityBrot
 {
-	public enum Planes { XY, XW, XZ, YW, YZ, WZ }
-
-	public class FractalConfig
+	public interface ISaveable
 	{
-		public double X,Y,W,Z;
-		public Planes Plane;
-		public double Resolution;
-		public double Escape;
-		public int IterMax;
-		public double OffsetX;
-		public double OffsetY;
-		public bool HideEscaped;
-		public bool HideContained;
-		public int SamplesPerPoint;
-
-		public static FractalConfig Default { get {
-			return new FractalConfig {
-				X = 0.0,Y = 0.0,
-				W = 0.0,Z = 0.0,
-				Plane = Planes.XY,
-				Resolution = 20.0,
-				Escape = 4.0,
-				IterMax = 100,
-				HideContained = false,
-				HideEscaped = false,
-				SamplesPerPoint = 2
-			};
-		}}
+		long ToStream(Stream writeStream);
 	}
+
+	public enum Planes : int { XY=0, XW=1, XZ=2, YW=3, YZ=4, WZ=5 }
 
 	public enum ColorComponent { None = 0, R, G ,B, A }
 

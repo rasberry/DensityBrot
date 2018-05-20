@@ -239,5 +239,32 @@ namespace DensityBrot
 			}
 			return !showHelp;
 		}
+		
+		public static FractalConfig ConfigFromOptions()
+		{
+			var conf = new FractalConfig {
+				Escape = Options.FractalEscape,
+				Plane = Planes.XY,
+				Resolution = Options.Resolution,
+				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
+				IterMax = Options.FractalMaxIter,
+				OffsetX = 0.0,
+				OffsetY = 0.0,
+				HideEscaped = Options.HideEscaped,
+				HideContained = Options.HideContained,
+				SamplesPerPoint = Options.FractalSamples
+			};
+			return conf;
+		}
+
+		public static void OptionsFromConfig(FractalConfig conf)
+		{
+			Options.FractalSamples = conf.SamplesPerPoint;
+			Options.FractalEscape = conf.Escape;
+			Options.FractalMaxIter = conf.IterMax;
+			Options.HideContained = conf.HideContained;
+			Options.HideEscaped = conf.HideEscaped;
+			Options.Resolution = conf.Resolution;
+		}
 	}
 }

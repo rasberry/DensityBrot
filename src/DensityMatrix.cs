@@ -9,32 +9,34 @@ using System.Threading.Tasks;
 
 namespace DensityBrot
 {
-	public interface IDensityMatrix : IDisposable
+	public interface IDensityMatrix : ISaveable, IDisposable
 	{
 		int Width { get; }
 		int Height { get; }
 		long this[int x,int y] { get; set; }
 		void Touch(int x,int y);
 		long Maximum { get; }
-		void SaveToFile(string name = null);
 	}
 
 	public class DensityMatrix : IDensityMatrix
 	{
+		private DensityMatrix()
+		{
+		}
 		public DensityMatrix(int width, int height)
 		{
 			Width = width;
 			Height = height;
-			CreateArray(MakeConfig(Width,Height));
+			data = CreateArray(MakeConfig(Width,Height));
 		}
 
-		public DensityMatrix(string matrixFile)
-		{
-			this.matrixFile = matrixFile;
-			if (matrixFile != null && File.Exists(matrixFile)) {
-				LoadDataFromFile(matrixFile);
-			}
-		}
+		//public DensityMatrix(string matrixFile)
+		//{
+		//	this.matrixFile = matrixFile;
+		//	if (matrixFile != null && File.Exists(matrixFile)) {
+		//		LoadDataFromFile(matrixFile);
+		//	}
+		//}
 
 		public long this[int x, int y] {
 			get {
@@ -48,10 +50,22 @@ namespace DensityBrot
 			}
 		}
 
-		public void SaveToFile(string name = null)
+		public long ToStream(Stream writeStream)
 		{
-			SaveDataToFile(data,name ?? matrixFile);
+			return WriteToStream(writeStream);
 		}
+
+		public static IDensityMatrix FromStream(Stream readStream)
+		{
+			var m = new DensityMatrix();
+			m.InitFromStream(readStream);
+			return m;
+		}
+
+		//public void SaveToFile(string name = null)
+		//{
+		//	SaveDataToFile(data,name ?? matrixFile);
+		//}
 
 		public void Dispose()
 		{
@@ -87,19 +101,19 @@ namespace DensityBrot
 			};
 		}
 
-		void CreateArray(ITitanicArrayConfig<long> config)
+		static ITitanicArray<long> CreateArray(ITitanicArrayConfig<long> config)
 		{
 			//return new TitanicFileArray<long>(config);
-			data = new TitanicMMFArray<long>(config);
+			return new TitanicMMFArray<long>(config);
 		}
 
-		void LoadDataFromFile(string name)
+		void InitFromStream(Stream readStream)
 		{
-			using(var fs = File.Open(name,FileMode.Open,FileAccess.Read,FileShare.Read))
-			using(var gz = new GZipStream(fs,CompressionMode.Decompress))
+			//using(var fs = File.Open(name,FileMode.Open,FileAccess.Read,FileShare.Read))
+			using(var gz = new GZipStream(readStream,CompressionMode.Decompress))
 			{
 				ReadHeader(gz,out int w,out int h, out long m);
-				CreateArray(MakeConfig(w,h));
+				data = CreateArray(MakeConfig(w,h));
 				Width = w; Height = h; Maximum = m;
 
 				byte[] buff = new byte[sizeof(long)];
@@ -110,12 +124,12 @@ namespace DensityBrot
 				}
 			}
 		}
-		void SaveDataToFile(ITitanicArray<long> data, string name)
+		long WriteToStream(Stream writeStream)
 		{
-			using(var fs = File.Open(name,FileMode.Create,FileAccess.ReadWrite,FileShare.Read))
-			using(var gz = new GZipStream(fs,CompressionLevel.Optimal))
+			long len = 0;
+			using(var gz = new GZipStream(writeStream,CompressionLevel.Optimal))
 			{
-				WriteHeader(gz);
+				len += WriteHeader(gz);
 
 				for(long i=0; i<data.Length; i++) {
 					long item = data[i];
@@ -123,28 +137,28 @@ namespace DensityBrot
 					gz.Write(bs,0,sizeof(long));
 				}
 			}
+			return len + data.Length;
 		}
 
-		void WriteHeader(Stream s)
+		long WriteHeader(Stream s)
 		{
 			var list = new List<byte>();
-			list.AddRange(BitConverter.GetBytes('D'));
-			list.AddRange(BitConverter.GetBytes('M'));
 			list.AddRange(BitConverter.GetBytes(Width));
 			list.AddRange(BitConverter.GetBytes(Height));
 			list.AddRange(BitConverter.GetBytes(Maximum));
 			var header = list.ToArray();
 
 			s.Write(header,0,header.Length);
+			return header.Length;
 		}
 
 		void ReadHeader(Stream s,out int width, out int height, out long maximum)
 		{
-			int len = 2 * sizeof(char) + 2 * sizeof(int) + 1 * sizeof(long);
+			int len = 2 * sizeof(int) + 1 * sizeof(long);
 			byte[] buff = new byte[len];
 			s.Read(buff,0,len);
 
-			int off = 2 * sizeof(char);
+			int off = 0;
 			width = BitConverter.ToInt32(buff,off);
 			height = BitConverter.ToInt32(buff,(off += sizeof(int)));
 			maximum = BitConverter.ToInt64(buff,(off += sizeof(int)));
@@ -167,6 +181,6 @@ namespace DensityBrot
 		}
 
 		ITitanicArray<long> data;
-		string matrixFile;
+		//string matrixFile;
 	}
 }

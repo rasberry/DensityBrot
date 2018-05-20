@@ -38,17 +38,17 @@ namespace DensityBrot
 
 			switch(Options.Mode)
 			{
-			case Options.ProcessMode.DensityBrot: CreateDensityBrot(); break;
+			case Options.ProcessMode.DensityBrot:  CreateDensityBrot(); break;
 			case Options.ProcessMode.CreateOrbits: ProduceOrbits(); break;
 			case Options.ProcessMode.TestColorMap: CreateColorMapTest(); break;
-			case Options.ProcessMode.NebulaBrot: CreateNebulaBrot(); break;
+			case Options.ProcessMode.NebulaBrot:   CreateNebulaBrot(); break;
 			}
 		}
 
 		static void CreateDensityBrot()
 		{
-			var conf = GetNormalFractalConfig();
-			DensityMatrix matrix = null;
+			var conf = Options.ConfigFromOptions();
+			IDensityMatrix matrix = null;
 			try
 			{
 				if (Options.CreateMatrix) {
@@ -69,23 +69,6 @@ namespace DensityBrot
 			}
 		}
 
-		static FractalConfig GetNormalFractalConfig()
-		{
-			var conf = new FractalConfig {
-				Escape = Options.FractalEscape,
-				Plane = Planes.XY,
-				Resolution = Options.Resolution,
-				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
-				IterMax = Options.FractalMaxIter,
-				OffsetX = 0.0,
-				OffsetY = 0.0,
-				HideEscaped = Options.HideEscaped,
-				HideContained = Options.HideContained,
-				SamplesPerPoint = Options.FractalSamples
-			};
-			return conf;
-		}
-
 		static DensityMatrix DoCreateMatrix(FractalConfig conf, string name = null)
 		{
 			DensityMatrix matrix = new DensityMatrix(Options.Width, Options.Height);
@@ -94,7 +77,7 @@ namespace DensityBrot
 			Logger.PrintInfo("building matrix [" + n + "]");
 			builder.Build();
 			Logger.PrintInfo("saving matrix file [" + n + "]");
-			matrix.SaveToFile(n);
+			Helpers.SaveToFile(n,matrix,conf);
 			return matrix;
 		}
 
@@ -126,14 +109,16 @@ namespace DensityBrot
 			PaintImageData(matrix, cm, img, comp);
 		}
 
-		private static DensityMatrix LoadMatrix(string name = null)
+		private static IDensityMatrix LoadMatrix(string name = null)
 		{
-			DensityMatrix matrix;
+			IDensityMatrix matrix;
+			FractalConfig conf;
 			string a = EnsureEndsWith(name ?? Options.FileName, ".dm");
 			Logger.PrintInfo("loading matrix file [" + a + "]");
-			matrix = new DensityMatrix(a);
+			Helpers.LoadFromFile(a,out matrix,out conf);
 			Options.Width = matrix.Width;
 			Options.Height = matrix.Height;
+			Options.OptionsFromConfig(conf);
 			return matrix;
 		}
 
@@ -285,10 +270,10 @@ namespace DensityBrot
 
 		static IDensityMatrix CreateNebulaBrotMatrix(string suffix, int iters, ColorComponent comp)
 		{
-			var conf = GetNormalFractalConfig();
+			var conf = Options.ConfigFromOptions();
 			conf.IterMax = iters;
 
-			DensityMatrix matrix = null;
+			IDensityMatrix matrix = null;
 			string mname = Path.Combine(
 				Path.GetDirectoryName(Options.FileName),
 				Path.GetFileNameWithoutExtension(Options.FileName) + suffix + ".dm"
