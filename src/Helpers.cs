@@ -3,7 +3,7 @@ using System.IO;
 
 namespace DensityBrot
 {
-	public static class Helpers
+	public static class FileHelpers
 	{
 		public static void SaveToFile(string name, IDensityMatrix matrix,FractalConfig conf)
 		{
@@ -42,10 +42,10 @@ namespace DensityBrot
 		}
 		public static int DoRead<T>(this Stream s, out T val)
 		{
-			int len = Helpers.SizeOf<T>();
+			int len = FileHelpers.SizeOf<T>();
 			byte[] buff = new byte[len];
 			int read = s.Read(buff,0,len);
-			Helpers.BytesToValue(buff,out val);
+			FileHelpers.BytesToValue(buff,out val);
 			return read;
 		}
 

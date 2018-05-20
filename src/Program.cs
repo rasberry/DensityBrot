@@ -77,7 +77,7 @@ namespace DensityBrot
 			Logger.PrintInfo("building matrix [" + n + "]");
 			builder.Build();
 			Logger.PrintInfo("saving matrix file [" + n + "]");
-			Helpers.SaveToFile(n,matrix,conf);
+			FileHelpers.SaveToFile(n,matrix,conf);
 			return matrix;
 		}
 
@@ -115,7 +115,7 @@ namespace DensityBrot
 			FractalConfig conf;
 			string a = EnsureEndsWith(name ?? Options.FileName, ".dm");
 			Logger.PrintInfo("loading matrix file [" + a + "]");
-			Helpers.LoadFromFile(a,out matrix,out conf);
+			FileHelpers.LoadFromFile(a,out matrix,out conf);
 			Options.Width = matrix.Width;
 			Options.Height = matrix.Height;
 			Options.OptionsFromConfig(conf);

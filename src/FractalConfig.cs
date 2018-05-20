@@ -33,19 +33,19 @@ namespace DensityBrot
 		public long ToStream(Stream writeStream)
 		{
 			long len = 0;
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(X));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(Y));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(W));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(Z));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes((int)Plane));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(Resolution));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(Escape));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(IterMax));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(OffsetX));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(OffsetY));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(HideEscaped));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(HideContained));
-			len += Helpers.DoWrite(writeStream,BitConverter.GetBytes(SamplesPerPoint));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(X));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Y));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(W));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Z));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes((int)Plane));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Resolution));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Escape));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(IterMax));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(OffsetX));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(OffsetY));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(HideEscaped));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(HideContained));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(SamplesPerPoint));
 			return len;
 		}
 
@@ -53,19 +53,19 @@ namespace DensityBrot
 		{
 			int iPlane;
 			var fc = new FractalConfig();
-			Helpers.DoRead(readStream,out fc.X);
-			Helpers.DoRead(readStream,out fc.Y);
-			Helpers.DoRead(readStream,out fc.W);
-			Helpers.DoRead(readStream,out fc.Z);
-			Helpers.DoRead(readStream,out iPlane);
-			Helpers.DoRead(readStream,out fc.Resolution);
-			Helpers.DoRead(readStream,out fc.Escape);
-			Helpers.DoRead(readStream,out fc.IterMax);
-			Helpers.DoRead(readStream,out fc.OffsetX);
-			Helpers.DoRead(readStream,out fc.OffsetY);
-			Helpers.DoRead(readStream,out fc.HideContained);
-			Helpers.DoRead(readStream,out fc.HideContained);
-			Helpers.DoRead(readStream,out fc.SamplesPerPoint);
+			FileHelpers.DoRead(readStream,out fc.X);
+			FileHelpers.DoRead(readStream,out fc.Y);
+			FileHelpers.DoRead(readStream,out fc.W);
+			FileHelpers.DoRead(readStream,out fc.Z);
+			FileHelpers.DoRead(readStream,out iPlane);
+			FileHelpers.DoRead(readStream,out fc.Resolution);
+			FileHelpers.DoRead(readStream,out fc.Escape);
+			FileHelpers.DoRead(readStream,out fc.IterMax);
+			FileHelpers.DoRead(readStream,out fc.OffsetX);
+			FileHelpers.DoRead(readStream,out fc.OffsetY);
+			FileHelpers.DoRead(readStream,out fc.HideContained);
+			FileHelpers.DoRead(readStream,out fc.HideContained);
+			FileHelpers.DoRead(readStream,out fc.SamplesPerPoint);
 			fc.Plane = (Planes)iPlane;
 			return fc;
 		}
