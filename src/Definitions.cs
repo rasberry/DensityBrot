@@ -14,9 +14,11 @@ namespace DensityBrot
 		long ToStream(Stream writeStream);
 	}
 
-	public enum Planes : int { XY=0, XW=1, XZ=2, YW=3, YZ=4, WZ=5 }
+	public enum Planes : int { ZrZi=0, ZrCr=1, ZrCi=2, ZiCr=3, ZiCi=4, CrCi=5 }
 
 	public enum ColorComponent { None = 0, R, G ,B, A }
+
+	public enum Axes : int { /*X*/ Zr=0, /*Y*/ Zi=1, /*W*/ Cr=2, /*Z*/ Ci=3 }
 
 	//abstracting color in case someday i want to use a higer bit depth than 8bpp
 	public struct ColorD

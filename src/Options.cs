@@ -219,8 +219,8 @@ namespace DensityBrot
 					+"\n                                     if -m is also specified both files will be created"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 4.0; 2.0 = 2x bigger)"
-					+"\n -o                                Output orbits instead of dentisy plot"
-					+"\n                                    (Warning: produces one image per coordinate)"
+					// +"\n -o                                Output orbits instead of dentisy plot"
+					// +"\n                                    (Warning: produces one image per coordinate)"
 					+"\n\nColor Options:"
 					+"\n -nb [r-iter g-iter b-iter]        Use nebulabrot coloring (default is 5000 500 50)"
 					+"\n                                    (Warning: this creates / requires 3 density matrix files)"
@@ -244,7 +244,7 @@ namespace DensityBrot
 		{
 			var conf = new FractalConfig {
 				Escape = Options.FractalEscape,
-				Plane = Planes.XY,
+				Plane = Planes.ZrZi,
 				Resolution = Options.Resolution,
 				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
 				IterMax = Options.FractalMaxIter,

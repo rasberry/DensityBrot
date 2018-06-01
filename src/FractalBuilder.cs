@@ -58,22 +58,22 @@ namespace DensityBrot
 
 			switch(conf.Plane)
 			{
-			case Planes.XY: default:
+			case Planes.ZrZi: default:
 				c = new Complex(cx,cy);
 				z = new Complex(conf.X,conf.Y); break;
-			case Planes.XW:
+			case Planes.ZrCr:
 				c = new Complex(conf.W,cy);
 				z = new Complex(conf.X,cx); break;
-			case Planes.XZ:
+			case Planes.ZrCi:
 				c = new Complex(cx,conf.Z);
 				z = new Complex(conf.X,cy); break;
-			case Planes.YW:
+			case Planes.ZiCr:
 				c = new Complex(conf.W,cx);
 				z = new Complex(cy,conf.Y); break;
-			case Planes.YZ:
+			case Planes.ZiCi:
 				c = new Complex(cx,conf.Z);
 				z = new Complex(cy,conf.Y); break;
-			case Planes.WZ:
+			case Planes.CrCi:
 				c = new Complex(conf.W,conf.Z);
 				z = new Complex(cx,cy); break;
 			}

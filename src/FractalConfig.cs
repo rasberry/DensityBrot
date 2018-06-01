@@ -20,7 +20,7 @@ namespace DensityBrot
 			return new FractalConfig {
 				X = 0.0,Y = 0.0,
 				W = 0.0,Z = 0.0,
-				Plane = Planes.XY,
+				Plane = Planes.ZrZi,
 				Resolution = 20.0,
 				Escape = 4.0,
 				IterMax = 100,

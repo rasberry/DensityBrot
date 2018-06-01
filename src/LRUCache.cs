@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+#if false
 namespace DensityBrot
 {
 	//https://stackoverflow.com/questions/754233/is-it-there-any-lru-implementation-of-idictionary
@@ -136,3 +136,4 @@ namespace DensityBrot
 		public V value;
 	}
 }
+#endif

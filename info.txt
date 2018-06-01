@@ -1,0 +1,12 @@
+== TODO
+= multithreaded render
+	create multi-lock class
+		basically lock on objects stored in a concurrent dictionary
+= configurable fractal formulas
+	= parser would be cool
+		= maybe a way to compile to c# code on the fly
+		= or a domain specific language (DSL)
+= rotations about an axis
+	= not sure how to do this yet
+	= [X,Y,W,Z]
+= unit tests
