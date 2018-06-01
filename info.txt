@@ -9,4 +9,11 @@
 = rotations about an axis
 	= not sure how to do this yet
 	= [X,Y,W,Z]
+= divide output pixels by samples per point
+= implement image per orbit
+	include all samples in each image
+	add option to limit total images
+		limit by number of points before escape
+		limit by bounds
+= progress indicator
 = unit tests

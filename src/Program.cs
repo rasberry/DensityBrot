@@ -197,10 +197,11 @@ namespace DensityBrot
 			//double ln = total / count;
 			//Debug.WriteLine("ln = "+ln);
 
+			double spp = Options.FractalSamples;
 			for (int y = 0; y < Options.Height; y++) {
 				for (int x = 0; x < Options.Width; x++) {
 					double li = matrix[x, y];
-					ColorD c = cm.GetColor(li - ln, lm - ln);
+					ColorD c = cm.GetColor((li - ln)/spp, (lm - ln)/spp);
 					if (comp != ColorComponent.None) {
 						img.SetPixelComponent(x,y,comp,c.GetComponent(comp));
 					} else {

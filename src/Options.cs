@@ -182,7 +182,6 @@ namespace DensityBrot
 						showHelp = true;
 					}
 					if (CreateMatrix && Width < 1 && Height < 1) {
-						//Width = Height = (int)Math.Ceiling(2 * FractalEscape * Resolution);
 						Width = Height = 800;
 					}
 					if (CreateMatrix && Resolution < double.Epsilon) {
