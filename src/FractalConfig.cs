@@ -5,7 +5,7 @@ namespace DensityBrot
 {
 	public class FractalConfig : ISaveable
 	{
-		public double X,Y,W,Z;
+		public double Zr,Zi,Cr,Ci;
 		public Planes Plane;
 		public double Resolution;
 		public double Escape;
@@ -18,8 +18,8 @@ namespace DensityBrot
 
 		public static FractalConfig Default { get {
 			return new FractalConfig {
-				X = 0.0,Y = 0.0,
-				W = 0.0,Z = 0.0,
+				Zr = 0.0,Zi = 0.0,
+				Cr = 0.0,Ci = 0.0,
 				Plane = Planes.ZrZi,
 				Resolution = 20.0,
 				Escape = 4.0,
@@ -33,10 +33,10 @@ namespace DensityBrot
 		public long ToStream(Stream writeStream)
 		{
 			long len = 0;
-			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(X));
-			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Y));
-			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(W));
-			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Z));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Zr));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Zi));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Cr));
+			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Ci));
 			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes((int)Plane));
 			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Resolution));
 			len += FileHelpers.DoWrite(writeStream,BitConverter.GetBytes(Escape));
@@ -53,10 +53,10 @@ namespace DensityBrot
 		{
 			int iPlane;
 			var fc = new FractalConfig();
-			FileHelpers.DoRead(readStream,out fc.X);
-			FileHelpers.DoRead(readStream,out fc.Y);
-			FileHelpers.DoRead(readStream,out fc.W);
-			FileHelpers.DoRead(readStream,out fc.Z);
+			FileHelpers.DoRead(readStream,out fc.Zr);
+			FileHelpers.DoRead(readStream,out fc.Zi);
+			FileHelpers.DoRead(readStream,out fc.Cr);
+			FileHelpers.DoRead(readStream,out fc.Ci);
 			FileHelpers.DoRead(readStream,out iPlane);
 			FileHelpers.DoRead(readStream,out fc.Resolution);
 			FileHelpers.DoRead(readStream,out fc.Escape);

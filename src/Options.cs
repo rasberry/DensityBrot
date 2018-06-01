@@ -246,7 +246,7 @@ namespace DensityBrot
 				Escape = Options.FractalEscape,
 				Plane = Planes.ZrZi,
 				Resolution = Options.Resolution,
-				X = 0.0, Y = 0.0, W = 0.0, Z = 0.0,
+				Zr = 0.0, Zi = 0.0, Cr = 0.0, Ci = 0.0,
 				IterMax = Options.FractalMaxIter,
 				OffsetX = 0.0,
 				OffsetY = 0.0,
