@@ -30,14 +30,6 @@ namespace DensityBrot
 			data = CreateArray(MakeConfig(Width,Height));
 		}
 
-		//public DensityMatrix(string matrixFile)
-		//{
-		//	this.matrixFile = matrixFile;
-		//	if (matrixFile != null && File.Exists(matrixFile)) {
-		//		LoadDataFromFile(matrixFile);
-		//	}
-		//}
-
 		public long this[int x, int y] {
 			get {
 				long offset = (long)y * Width + x;
@@ -61,11 +53,6 @@ namespace DensityBrot
 			m.InitFromStream(readStream);
 			return m;
 		}
-
-		//public void SaveToFile(string name = null)
-		//{
-		//	SaveDataToFile(data,name ?? matrixFile);
-		//}
 
 		public void Dispose()
 		{
@@ -109,7 +96,6 @@ namespace DensityBrot
 
 		void InitFromStream(Stream readStream)
 		{
-			//using(var fs = File.Open(name,FileMode.Open,FileAccess.Read,FileShare.Read))
 			using(var gz = new GZipStream(readStream,CompressionMode.Decompress))
 			{
 				ReadHeader(gz,out int w,out int h, out long m);
@@ -181,6 +167,5 @@ namespace DensityBrot
 		}
 
 		ITitanicArray<long> data;
-		//string matrixFile;
 	}
 }

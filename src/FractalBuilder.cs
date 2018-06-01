@@ -120,13 +120,11 @@ namespace DensityBrot
 		static double WinToWorld(double v, double magnify, int res, double offset)
 		{
 			return magnify / res * v - (magnify / 2 - offset);
-			// return (v - offset) / magnify;
 
 		}
 		static int WorldToWin(double v, double magnify, int res, double offset)
 		{
 			return (int)((v + magnify / 2 + offset) * res / magnify);
-			//return (int)Math.Round(v * magnify) + offset;
 		}
 
 		struct RectangleD

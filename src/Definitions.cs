@@ -18,7 +18,7 @@ namespace DensityBrot
 
 	public enum ColorComponent { None = 0, R, G ,B, A }
 
-	public enum Axes : int { /*X*/ Zr=0, /*Y*/ Zi=1, /*W*/ Cr=2, /*Z*/ Ci=3 }
+	public enum Axes : int { Zr=0, Zi=1, Cr=2, Ci=3 }
 
 	//abstracting color in case someday i want to use a higer bit depth than 8bpp
 	public struct ColorD
