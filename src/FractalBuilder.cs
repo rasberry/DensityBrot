@@ -21,7 +21,9 @@ namespace DensityBrot
 
 		public void Build()
 		{
-			var sw = Stopwatch.StartNew();
+			Stopwatch sw = Stopwatch.StartNew();
+			
+			//TODO maybe have an option for image size bounds ?
 			// double sampleRadW = config.Resolution / Options.Width;
 			// double sampleRadH = config.Resolution / Options.Height;
 			// double sampleRadWhalf = sampleRadW / 2;
@@ -33,19 +35,19 @@ namespace DensityBrot
 			//	2 * config.Escape + 2 * sampleRadH
 			//);
 			
-			for(int y = 0; y<Options.Height; y++) {
-				for(int x = 0; x<Options.Width; x++) {
-					//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
-					var rnd = new Random();
-					for(int s = 0; s<config.SamplesPerPoint; s++) {
-						double nx = 1.0 * rnd.NextDouble() - 0.5;
-						double ny = 1.0 * rnd.NextDouble() - 0.5;
-						RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
+			using (var progress = Logger.CreateProgress())
+			{
+				for(int y = 0; y<Options.Height; y++) {
+					for(int x = 0; x<Options.Width; x++) {
+						//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
+						var rnd = new Random();
+						for(int s = 0; s<config.SamplesPerPoint; s++) {
+							double nx = 1.0 * rnd.NextDouble() - 0.5;
+							double ny = 1.0 * rnd.NextDouble() - 0.5;
+							RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
+						}
 					}
-				}
-				if (sw.ElapsedMilliseconds > 1000) {
-					sw.Restart();
-					Logger.PrintInfo("progress "+y+" out of "+Options.Height);
+					progress.Update("Matrix",(double)y/Options.Height);
 				}
 			}
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);

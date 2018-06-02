@@ -36,6 +36,7 @@ namespace DensityBrot
 			if (!Options.ProcessArgs(args)) { return; }
 			Logger.ShowVerbose = Options.ShowVerbose;
 
+			Logger.PrintLine("Starting "+Options.Mode);
 			switch(Options.Mode)
 			{
 			case Options.ProcessMode.DensityBrot:  CreateDensityBrot(); break;
@@ -83,13 +84,12 @@ namespace DensityBrot
 
 		static void DoCreateImage(IDensityMatrix matrix)
 		{
+			Logger.PrintLine("Creating Image");
 			Logger.PrintInfo("matrix = [" + matrix.Width + "x" + matrix.Height + " " + matrix.Maximum + "]");
 			IColorMap cm = GetColorMap(out string _);
 			using (var img = new MagicCanvas(Options.Width, Options.Height))
 			{
-				Logger.PrintInfo("building image");
 				PaintImageData(matrix, cm, img);
-
 				SaveCanvas(img);
 			}
 		}
@@ -125,16 +125,20 @@ namespace DensityBrot
 		static void PaintImageData(IDensityMatrix matrix, IColorMap cm, ICanvas img, ColorComponent comp = ColorComponent.None)
 		{
 			double lm = matrix.Maximum;
-			
-			// find minimum method
 			double ln = double.MaxValue;
-			for (int y = 1; y < Options.Height - 1; y++) {
-				for (int x = 1; x < Options.Width - 1; x++) {
-					double li = matrix[x, y];
-					if (li > 0.0 && li < ln) { ln = li; }
+			
+			// find minimum 
+			using (var progress = Logger.CreateProgress())
+			{
+				for (int y = 1; y < Options.Height - 1; y++) {
+					for (int x = 1; x < Options.Width - 1; x++) {
+						double li = matrix[x, y];
+						if (li > 0.0 && li < ln) { ln = li; }
+					}
+					progress.Update("matrix find minimum",(double)y/Options.Height);
 				}
+				Debug.WriteLine("ln = "+ln);
 			}
-			Debug.WriteLine("ln = "+ln);
 
 			//chop at most frequent value
 			//double hmax = 0.0;
@@ -197,16 +201,20 @@ namespace DensityBrot
 			//double ln = total / count;
 			//Debug.WriteLine("ln = "+ln);
 
-			double spp = Options.FractalSamples;
-			for (int y = 0; y < Options.Height; y++) {
-				for (int x = 0; x < Options.Width; x++) {
-					double li = matrix[x, y];
-					ColorD c = cm.GetColor((li - ln)/spp, (lm - ln)/spp);
-					if (comp != ColorComponent.None) {
-						img.SetPixelComponent(x,y,comp,c.GetComponent(comp));
-					} else {
-						img.SetPixel(x, y, c);
+			using (var progress = Logger.CreateProgress())
+			{
+				double spp = Options.FractalSamples;
+				for (int y = 0; y < Options.Height; y++) {
+					for (int x = 0; x < Options.Width; x++) {
+						double li = matrix[x, y];
+						ColorD c = cm.GetColor((li - ln)/spp, (lm - ln)/spp);
+						if (comp != ColorComponent.None) {
+							img.SetPixelComponent(x,y,comp,c.GetComponent(comp));
+						} else {
+							img.SetPixel(x, y, c);
+						}
 					}
+					progress.Update("Image ",(double)y/Options.Height);
 				}
 			}
 		}
