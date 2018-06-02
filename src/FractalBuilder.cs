@@ -37,6 +37,7 @@ namespace DensityBrot
 			
 			using (var progress = Logger.CreateProgress())
 			{
+				double total = Options.Height * Options.Width * config.SamplesPerPoint;
 				for(int y = 0; y<Options.Height; y++) {
 					for(int x = 0; x<Options.Width; x++) {
 						//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
@@ -45,9 +46,10 @@ namespace DensityBrot
 							double nx = 1.0 * rnd.NextDouble() - 0.5;
 							double ny = 1.0 * rnd.NextDouble() - 0.5;
 							RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
+							double done = s + x*config.SamplesPerPoint + y*config.SamplesPerPoint*Options.Width;
+							progress.Update("Matrix",done / total);
 						}
 					}
-					progress.Update("Matrix",(double)y/Options.Height);
 				}
 			}
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
