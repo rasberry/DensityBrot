@@ -11,6 +11,60 @@ using System.Threading;
 
 namespace DensityBrot
 {
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,WeakReference> store;
+
+		static PebbleLock()
+		{
+			store = new ConcurrentDictionary<T, WeakReference>();
+			Thread cleaner = new Thread(Sweep);
+			cleaner.Start();
+		}
+
+		public PebbleLock(T key)
+		{
+			var weakHandle = store.GetOrAdd(key,(T k) => new WeakReference(new object()));
+			//tie the lifetime of lockHandle to this class so it doesn't get GC'd early
+			lockHandle = weakHandle.Target;
+			//aquire lock (blocks here)
+			Monitor.Enter(lockHandle,ref wasTaken);
+		}
+
+		public void Dispose()
+		{
+			//release lock
+			if (wasTaken) {
+				Monitor.Exit(lockHandle);
+			}
+			lockHandle = null;
+		}
+
+		~PebbleLock()
+		{
+			//TODO if lockHandle is not null something very bad happened and we should crash
+			// Maybe Dispose was not called by accident :)
+		}
+
+		static void Sweep()
+		{
+			GC.RegisterForFullGCNotification(1,1);
+			Console.WriteLine("sweep registered");
+			while(true) { //TODO replace while loop with something that stops when the main thread stops - http://localhost:8080/stackoverflow/7402146
+				GC.WaitForFullGCComplete(); //blocks
+				Console.WriteLine("GC happened");
+				foreach(var kvp in store) {
+					if (!kvp.Value.IsAlive) {
+						store.TryRemove(kvp.Key,out _);
+					}
+				}
+			}
+		}
+
+		object lockHandle;
+		bool wasTaken;
+	}
+
 	#if false
 	//TODO when do you remove the item from the dictionary ?
 	public class PebleLock<T> : IDisposable
@@ -98,58 +152,6 @@ namespace DensityBrot
 		//}
 	}
 	#endif
-
-	public class PebbleLock<T> : IDisposable
-	{
-		static ConcurrentDictionary<T,WeakReference> store;
-
-		static PebbleLock()
-		{
-			store = new ConcurrentDictionary<T, WeakReference>();
-			Thread cleaner = new Thread(Sweep);
-			cleaner.Start();
-		}
-
-		public PebbleLock(T key)
-		{
-			var weakHandle = store.GetOrAdd(key,(T k) => new WeakReference(new object()));
-			//tie the lifetime of lockHandle to this class so it doesn't get GC'd early
-			lockHandle = weakHandle.Target;
-			//aquire lock (blocks here)
-			Monitor.Enter(lockHandle,ref wasTaken);
-		}
-
-		public void Dispose()
-		{
-			//release lock
-			if (wasTaken) {
-				Monitor.Exit(lockHandle);
-			}
-			lockHandle = null;
-		}
-
-		~PebbleLock()
-		{
-			//TODO if lockHandle is not null something very bad happened and we should crash
-			// Maybe Dispose was not called by accident :)
-		}
-
-		static void Sweep()
-		{
-			GC.RegisterForFullGCNotification(0,0);
-			while(true) { //TODO replace while loop with something that stops when the main thread stops - http://localhost:8080/stackoverflow/7402146
-				GC.WaitForFullGCComplete(); //blocks
-				foreach(var kvp in store) {
-					if (!kvp.Value.IsAlive) {
-						store.TryRemove(kvp.Key,out _);
-					}
-				}
-			}
-		}
-
-		object lockHandle;
-		bool wasTaken;
-	}
 
 	#if false
 	//TODO find a better way to do the sweeping

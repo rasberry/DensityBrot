@@ -298,9 +298,11 @@ __pycache__/
 *.png
 *.dm
 test
+samples
 *.bat
 *.js
 stuff
 *.html
 .vscode
 *.sh
+a.txt

@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
@@ -7,10 +7,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DensityBrot", "src\DensityB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HugeStructures", "HugeStructures\src\HugeStructures.csproj", "{A51CC5AC-1B55-43A3-A941-6DE2BA43DEB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DensityBrot.Test", "Test\DensityBrot.Test.csproj", "{8094E3F9-30DB-49B5-B936-C72F62C21F91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{142D3017-8D97-4A9D-B9CD-B9442A51AAD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -25,6 +31,18 @@ Global
 		{45F6BE30-989A-4749-B6A0-69099C8661F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45F6BE30-989A-4749-B6A0-69099C8661F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45F6BE30-989A-4749-B6A0-69099C8661F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Debug|x64.ActiveCfg = Debug|x64
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Debug|x64.Build.0 = Debug|x64
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Debug|x86.ActiveCfg = Debug|x86
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Debug|x86.Build.0 = Debug|x86
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Release|x64.ActiveCfg = Release|x64
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Release|x64.Build.0 = Release|x64
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Release|x86.ActiveCfg = Release|x86
+		{8094E3F9-30DB-49B5-B936-C72F62C21F91}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
