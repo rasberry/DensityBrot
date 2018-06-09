@@ -10,6 +10,7 @@ namespace DendityBrot.Test
 	{
 		static void Main(string[] args)
 		{
+			Trace.Listeners.Add(new DebugTraceListener());
 			try {
 				MainMain(args);
 			} catch(Exception e) {
@@ -23,8 +24,6 @@ namespace DendityBrot.Test
 
 		static void MainMain(string[] args)
 		{
-			Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
-
 			var clist = Assembly.GetExecutingAssembly().GetTypes()
 				.Where(t => t.GetCustomAttributes(typeof(TestClassAttribute),false).Any())
 			;
@@ -38,9 +37,22 @@ namespace DendityBrot.Test
 				foreach(var m in mlist) {
 					var sw = Stopwatch.StartNew();
 					m.Invoke(inst,new object[0]);
-					Console.WriteLine(m.Name+" took "+sw.ElapsedMilliseconds+"ms");
+					Trace.WriteLine(m.Name+" took "+sw.ElapsedMilliseconds+"ms");
 				}
 			}
+		}
+	}
+
+	class DebugTraceListener : TraceListener
+	{
+		public override void Write(string message)
+		{
+			Console.Write(message);
+		}
+
+		public override void WriteLine(string message)
+		{
+			Console.WriteLine(message);
 		}
 	}
 }

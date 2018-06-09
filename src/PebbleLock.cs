@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 // = find or create lock for key
@@ -12,7 +13,7 @@ using System.Threading;
 namespace DensityBrot
 {
 	//#if false
-	//Notes:
+	//Notes: (Works!!)
 	// - It seems to be that to use wait() you have to signal all threads on Set()
 	// and that is why ManualResetEvent works and not AutoResetEvent or SemaphoreSlim(1,1)
 	// - Looks like the reason this works is because TryAdd can happen between 
@@ -26,9 +27,7 @@ namespace DensityBrot
 		{
 			Key = key;
 			while (!store.TryAdd(key,new ManualResetEvent(false))) {
-				//Console.WriteLine("\ttryadd "+System.Threading.Thread.CurrentThread.ManagedThreadId);
 				if(store.TryGetValue(key, out var e)) {
-					//Console.WriteLine("\twait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
 					e.WaitOne();
 				}
 			}
@@ -39,53 +38,126 @@ namespace DensityBrot
 			if (!store.TryRemove(Key,out var e)) {
 				throw new InvalidOperationException("key removal failed");
 			}
-			//Console.WriteLine("\trelease "+System.Threading.Thread.CurrentThread.ManagedThreadId);
 			e.Set();
+			wasDisposed = true;
+		}
+
+		~PebbleLock()
+		{
+			if (!wasDisposed) {
+				throw new InvalidOperationException("Dispose was never called. Consider a employing a 'using' statement");
+			}
 		}
 
 		T Key;
+		bool wasDisposed = false;
 	}
 	//#endif
 
 	#if false
+	//Notes: (Works!!)
+	// - not sure which to use Thread.Sleep or Thread.Yield
+	// - simle design but will call tryadd a lot under high contention
+	// - much slower than the version that uses ManualResetEvent
+	// https://codereview.stackexchange.com/questions/128599/dynamic-multi-threading-lock-with-while-loop
 	public class PebbleLock<T> : IDisposable
 	{
-		static ConcurrentDictionary<T,SemaphoreSlim> store
-			= new ConcurrentDictionary<T, SemaphoreSlim>();
-		static object waitLock = new object();
+		static ConcurrentDictionary<T,byte> store
+			= new ConcurrentDictionary<T, byte>();
+
+		public PebbleLock(T key)
+		{
+			this.Key = key;
+			while (!store.TryAdd(key,0)) {
+				//TODO this causes many TryAdd attempts if the key is highly contended
+				Thread.Sleep(0);
+			}
+		}
+
+		public void Dispose()
+		{
+			if (!store.TryRemove(Key,out _)) {
+				throw new InvalidOperationException("key removal failed");
+			}
+			wasDisposed = true;
+		}
+
+		~PebbleLock()
+		{
+			if (!wasDisposed) {
+				throw new InvalidOperationException("Dispose was never called. Consider a employing a using statement");
+			}
+		}
+
+		T Key;
+		bool wasDisposed = false;
+	}
+	#endif
+
+	#if false
+	public class PebbleLock<T> : IDisposable
+	{
+		static Dictionary<T,int> store = new Dictionary<T, int>();
+		static object locker = new object();
+
+		public PebbleLock(T item)
+		{
+			Key = item;
+			lock(locker)
+			{
+				if (!store.TryGetValue(item,out int thread)) {
+					store.Add(item,Thread.CurrentThread.ManagedThreadId);
+				} else {
+					Thread.Yield(); //TODO can this be a ResetEvent ?
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			lock(locker)
+			{
+				if (!store.Remove(Key,out int thread) || thread != Thread.CurrentThread.ManagedThreadId) {
+					//TODO crashes here
+					throw new InvalidOperationException("failed to remove key");
+				}
+			}
+		}
+
+		T Key;
+	}
+	#endif
+
+	#if false
+	//TODO this one still calls TryAdd repeatedly.. not sure why tho
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,AutoResetEvent> store
+			= new ConcurrentDictionary<T, AutoResetEvent>();
 
 		public PebbleLock(T key)
 		{
 			Key = key;
-			var s = store.AddOrUpdate(key,
-				(T k) => {
-					lock(waitLock) {
-						Console.WriteLine("\tadd wait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
-						var n = new SemaphoreSlim(1,1);
-						n.Wait();
-						return n;
-					}
-				},
-				(T k, SemaphoreSlim c) => {
-					lock(waitLock) {
-						Console.WriteLine("\thas wait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
-						c.Wait();
-						return c;
-					}
+			while (!store.TryAdd(key,Are = new AutoResetEvent(false))) {
+				Console.WriteLine("\ttryadd "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+				if(Are == null && store.TryGetValue(key, out Are)) {
+					Console.WriteLine("\twait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+					Are.WaitOne();
 				}
-			);
-			Console.WriteLine("\taquired "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+			}
 		}
+
 		public void Dispose()
 		{
-			if (!store.TryRemove(Key,out var e)) {
+			if (!store.TryRemove(Key,out _)) {
 				throw new InvalidOperationException("key removal failed");
 			}
 			Console.WriteLine("\trelease "+System.Threading.Thread.CurrentThread.ManagedThreadId);
-			e.Release();
+			Are.Set();
 		}
 
 		T Key;
+		AutoResetEvent Are;
 	}
 	#endif
 
@@ -123,34 +195,6 @@ namespace DensityBrot
 		T Key;
 	}
 	#endif
-
-	#if false
-	// https://codereview.stackexchange.com/questions/128599/dynamic-multi-threading-lock-with-while-loop
-	public class PebbleLock<T> : IDisposable
-	{
-		static ConcurrentDictionary<T,byte> store
-			= new ConcurrentDictionary<T, byte>();
-
-		public PebbleLock(T key)
-		{
-			this.Key = key;
-			while (!store.TryAdd(key,0)) {
-				//TODO this causes many TryAdd attempts if the key is highly contended
-				Thread.Sleep(0);
-			}
-		}
-
-		public void Dispose()
-		{
-			if (!store.TryRemove(Key,out _)) {
-				throw new InvalidOperationException("key removal failed");
-			}
-		}
-
-		T Key;
-	}
-	#endif
-
 
 	#if false
 	public class PebbleLock<T> : IDisposable
