@@ -95,6 +95,10 @@ namespace DensityBrot
 	#endif
 
 	#if false
+	//TODO trying different approach where we keep track of just {thread count} number of items
+	// then check if another thread is using the same key. Seems like a sound idea, but this
+	// implementation does not work
+	//TODO this crashes
 	public class PebbleLock<T> : IDisposable
 	{
 		static Dictionary<T,int> store = new Dictionary<T, int>();
@@ -108,6 +112,7 @@ namespace DensityBrot
 				if (!store.TryGetValue(item,out int thread)) {
 					store.Add(item,Thread.CurrentThread.ManagedThreadId);
 				} else {
+					//TODO humm.. we don't want to block here or we get a deadlock
 					Thread.Yield(); //TODO can this be a ResetEvent ?
 				}
 			}
@@ -281,7 +286,7 @@ namespace DensityBrot
 	#endif
 
 	#if false
-	//TODO you need a peblelock to implement counting.. lame
+	//TODO you need a peblelock to implement counting.. badness
 	public class PebleLock_2<T> : IDisposable
 	{
 		static ConcurrentDictionary<T,object> store = new ConcurrentDictionary<T,object>();
