@@ -36,7 +36,9 @@ namespace DendityBrot.Test
 					.Where(m => m.GetCustomAttributes(typeof(TestMethodAttribute),false).Any())
 				;
 				foreach(var m in mlist) {
+					var sw = Stopwatch.StartNew();
 					m.Invoke(inst,new object[0]);
+					Console.WriteLine(m.Name+" took "+sw.ElapsedMilliseconds+"ms");
 				}
 			}
 		}

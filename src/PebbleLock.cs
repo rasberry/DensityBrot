@@ -11,6 +11,148 @@ using System.Threading;
 
 namespace DensityBrot
 {
+	//#if false
+	//Notes:
+	// - It seems to be that to use wait() you have to signal all threads on Set()
+	// and that is why ManualResetEvent works and not AutoResetEvent or SemaphoreSlim(1,1)
+	// - Looks like the reason this works is because TryAdd can happen between 
+	// TryRemove and Set() which can cause the 'release' to happen on the wrong 'sync object'
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,ManualResetEvent> store
+			= new ConcurrentDictionary<T, ManualResetEvent>();
+
+		public PebbleLock(T key)
+		{
+			Key = key;
+			while (!store.TryAdd(key,new ManualResetEvent(false))) {
+				//Console.WriteLine("\ttryadd "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+				if(store.TryGetValue(key, out var e)) {
+					//Console.WriteLine("\twait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+					e.WaitOne();
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			if (!store.TryRemove(Key,out var e)) {
+				throw new InvalidOperationException("key removal failed");
+			}
+			//Console.WriteLine("\trelease "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+			e.Set();
+		}
+
+		T Key;
+	}
+	//#endif
+
+	#if false
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,SemaphoreSlim> store
+			= new ConcurrentDictionary<T, SemaphoreSlim>();
+		static object waitLock = new object();
+
+		public PebbleLock(T key)
+		{
+			Key = key;
+			var s = store.AddOrUpdate(key,
+				(T k) => {
+					lock(waitLock) {
+						Console.WriteLine("\tadd wait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+						var n = new SemaphoreSlim(1,1);
+						n.Wait();
+						return n;
+					}
+				},
+				(T k, SemaphoreSlim c) => {
+					lock(waitLock) {
+						Console.WriteLine("\thas wait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+						c.Wait();
+						return c;
+					}
+				}
+			);
+			Console.WriteLine("\taquired "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+		}
+		public void Dispose()
+		{
+			if (!store.TryRemove(Key,out var e)) {
+				throw new InvalidOperationException("key removal failed");
+			}
+			Console.WriteLine("\trelease "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+			e.Release();
+		}
+
+		T Key;
+	}
+	#endif
+
+	#if false
+	//TODO not sure why using SemaphoreSlim is any different than ManualResetEvent, but
+	// there must be a difference since the SemaphoreSlim version hangs
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,SemaphoreSlim> store
+			= new ConcurrentDictionary<T, SemaphoreSlim>();
+
+		public PebbleLock(T key)
+		{
+			Key = key;
+			while (!store.TryAdd(key,new SemaphoreSlim(1,1))) {
+				//Console.WriteLine("\ttryadd "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+				if(store.TryGetValue(key, out var e)) {
+					//Console.WriteLine("\twait "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+					e.Wait();
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			if (!store.TryRemove(Key,out var e)) {
+				throw new InvalidOperationException("key removal failed");
+			}
+			if (e.CurrentCount > 0) {
+				//Console.WriteLine("\trelease "+System.Threading.Thread.CurrentThread.ManagedThreadId);
+				e.Release();
+			}
+		}
+
+		T Key;
+	}
+	#endif
+
+	#if false
+	// https://codereview.stackexchange.com/questions/128599/dynamic-multi-threading-lock-with-while-loop
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,byte> store
+			= new ConcurrentDictionary<T, byte>();
+
+		public PebbleLock(T key)
+		{
+			this.Key = key;
+			while (!store.TryAdd(key,0)) {
+				//TODO this causes many TryAdd attempts if the key is highly contended
+				Thread.Sleep(0);
+			}
+		}
+
+		public void Dispose()
+		{
+			if (!store.TryRemove(Key,out _)) {
+				throw new InvalidOperationException("key removal failed");
+			}
+		}
+
+		T Key;
+	}
+	#endif
+
+
+	#if false
 	public class PebbleLock<T> : IDisposable
 	{
 		static ConcurrentDictionary<T,WeakReference> store;
@@ -24,9 +166,11 @@ namespace DensityBrot
 
 		public PebbleLock(T key)
 		{
-			var weakHandle = store.GetOrAdd(key,(T k) => new WeakReference(new object()));
-			//tie the lifetime of lockHandle to this class so it doesn't get GC'd early
-			lockHandle = weakHandle.Target;
+			var weakHandle = store.GetOrAdd(key,(T k) => {
+				lockHandle = new object();
+				return new WeakReference(lockHandle);
+			});
+			//TODO ohnoes.. lockHandle might be null here if it was GC'd during disuse
 			//aquire lock (blocks here)
 			Monitor.Enter(lockHandle,ref wasTaken);
 		}
@@ -55,7 +199,9 @@ namespace DensityBrot
 				Console.WriteLine("GC happened");
 				foreach(var kvp in store) {
 					if (!kvp.Value.IsAlive) {
-						store.TryRemove(kvp.Key,out _);
+						if (store.TryRemove(kvp.Key,out _)) {
+							Console.WriteLine("removed "+kvp.Key);
+						}
 					}
 				}
 			}
@@ -64,6 +210,7 @@ namespace DensityBrot
 		object lockHandle;
 		bool wasTaken;
 	}
+	#endif
 
 	#if false
 	//TODO when do you remove the item from the dictionary ?
