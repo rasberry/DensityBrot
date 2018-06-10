@@ -46,7 +46,6 @@ namespace DensityBrot
 							double nx = 1.0 * rnd.NextDouble() - 0.5;
 							double ny = 1.0 * rnd.NextDouble() - 0.5;
 							RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
-							double done = s + x*config.SamplesPerPoint + y*config.SamplesPerPoint*Options.Width;
 							progress.Update("Matrix");
 						}
 					}

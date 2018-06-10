@@ -135,7 +135,6 @@ namespace DensityBrot
 					for (int x = 1; x < Options.Width - 1; x++) {
 						double li = matrix[x, y];
 						if (li > 0.0 && li < ln) { ln = li; }
-						double done = x + y*Options.Width;
 						progress.Update("Minimum");
 					}
 				}
@@ -216,7 +215,6 @@ namespace DensityBrot
 						} else {
 							img.SetPixel(x, y, c);
 						}
-						double done = x + y * Options.Width;
 						progress.Update("Image");
 					}
 				}
