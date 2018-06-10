@@ -17,3 +17,9 @@
 = add option to limit parallelism
 = unit tests
 = make a readme
+
+
+== Intersting
+= take a look at some of the speedups mentioned here https://softologyblog.wordpress.com/2011/06/26/buddhabrot-fractals/
+= http://www.linas.org/art-gallery/mandel/mandel.html
+= http://www.linas.org/art-gallery/escape/escape.html
