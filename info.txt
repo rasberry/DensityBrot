@@ -1,7 +1,4 @@
 == TODO
-= multithreaded render
-	create multi-lock class
-		basically lock on objects stored in a concurrent dictionary
 = configurable fractal formulas
 	= parser would be cool
 		= maybe a way to compile to c# code on the fly
@@ -17,4 +14,6 @@
 = progress indicator
 = clean up temp files when program is forcibly closed
 	= why doesn't 'using' do this ?
+= add option to limit parallelism
 = unit tests
+= make a readme
