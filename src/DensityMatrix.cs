@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DensityBrot
@@ -33,12 +34,22 @@ namespace DensityBrot
 		public long this[int x, int y] {
 			get {
 				long offset = (long)y * Width + x;
-				return data[offset];
+				using(var pb = new PebbleLock<long>(offset)) {
+					return data[offset];
+				}
 			}
 			set {
 				long offset = (long)y * Width + x;
-				if (value > Maximum) { Maximum = value; }
-				data[offset] = value;
+				if (value > maximum) {
+					lock(maxLock) {
+						if (value > maximum) {
+							maximum = value;
+						}
+					}
+				}
+				using (var pb = new PebbleLock<long>(offset)) {
+					data[offset] = value;
+				}
 			}
 		}
 
@@ -66,7 +77,7 @@ namespace DensityBrot
 			}
 		}
 
-		public long Maximum { get; private set; }
+		public long Maximum { get { return maximum; }}
 		public void Touch(int x,int y) { this[x,y]++; }
 		public int Width { get; private set; }
 		public int Height { get; private set; }
@@ -90,7 +101,6 @@ namespace DensityBrot
 
 		static ITitanicArray<long> CreateArray(ITitanicArrayConfig<long> config)
 		{
-			//return new TitanicFileArray<long>(config);
 			return new TitanicMMFArray<long>(config);
 		}
 
@@ -100,7 +110,7 @@ namespace DensityBrot
 			{
 				ReadHeader(gz,out int w,out int h, out long m);
 				data = CreateArray(MakeConfig(w,h));
-				Width = w; Height = h; Maximum = m;
+				Width = w; Height = h; maximum = m;
 
 				byte[] buff = new byte[sizeof(long)];
 				for(long i=0; i<data.Length; i++) {
@@ -167,5 +177,9 @@ namespace DensityBrot
 		}
 
 		ITitanicArray<long> data;
+		
+		//need explicit backing field for thead safety
+		long maximum;
+		object maxLock = new object();
 	}
 }

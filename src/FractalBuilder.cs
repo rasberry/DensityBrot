@@ -35,23 +35,24 @@ namespace DensityBrot
 			//	2 * config.Escape + 2 * sampleRadH
 			//);
 			
-			using (var progress = Logger.CreateProgress())
+			//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
+			var rnd = new Random();
+			long total = Options.Height * Options.Width * config.SamplesPerPoint;
+			using (var progress = Logger.CreateProgress(total))
 			{
-				double total = Options.Height * Options.Width * config.SamplesPerPoint;
 				for(int y = 0; y<Options.Height; y++) {
 					for(int x = 0; x<Options.Width; x++) {
-						//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
-						var rnd = new Random();
 						for(int s = 0; s<config.SamplesPerPoint; s++) {
 							double nx = 1.0 * rnd.NextDouble() - 0.5;
 							double ny = 1.0 * rnd.NextDouble() - 0.5;
 							RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
 							double done = s + x*config.SamplesPerPoint + y*config.SamplesPerPoint*Options.Width;
-							progress.Update("Matrix",done / total);
+							progress.Update("Matrix");
 						}
 					}
 				}
 			}
+
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
 		}
 

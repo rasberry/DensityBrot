@@ -128,15 +128,15 @@ namespace DensityBrot
 			double ln = double.MaxValue;
 			
 			// find minimum 
-			using (var progress = Logger.CreateProgress())
+			long totalm = Options.Height * Options.Width;
+			using (var progress = Logger.CreateProgress(totalm))
 			{
-				double total = Options.Height * Options.Width;
 				for (int y = 1; y < Options.Height - 1; y++) {
 					for (int x = 1; x < Options.Width - 1; x++) {
 						double li = matrix[x, y];
 						if (li > 0.0 && li < ln) { ln = li; }
 						double done = x + y*Options.Width;
-						progress.Update("Minimum",done / total);
+						progress.Update("Minimum");
 					}
 				}
 				Debug.WriteLine("ln = "+ln);
@@ -203,9 +203,9 @@ namespace DensityBrot
 			//double ln = total / count;
 			//Debug.WriteLine("ln = "+ln);
 
-			using (var progress = Logger.CreateProgress())
+			long total = Options.Height * Options.Width;
+			using (var progress = Logger.CreateProgress(total))
 			{
-				double total = Options.Height * Options.Width;
 				double spp = Options.FractalSamples;
 				for (int y = 0; y < Options.Height; y++) {
 					for (int x = 0; x < Options.Width; x++) {
@@ -217,7 +217,7 @@ namespace DensityBrot
 							img.SetPixel(x, y, c);
 						}
 						double done = x + y * Options.Width;
-						progress.Update("Image ",done / total);
+						progress.Update("Image");
 					}
 				}
 			}
