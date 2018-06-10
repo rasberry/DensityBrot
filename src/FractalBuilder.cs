@@ -38,9 +38,12 @@ namespace DensityBrot
 			//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
 			var rnd = new Random();
 			long total = Options.Height * Options.Width * config.SamplesPerPoint;
+			var po = new ParallelOptions {
+				MaxDegreeOfParallelism = 2 * Environment.ProcessorCount
+			};
 			using (var progress = Logger.CreateProgress(total))
 			{
-				for(int y = 0; y<Options.Height; y++) {
+				Parallel.For(0,Options.Height,po,(y) => {
 					for(int x = 0; x<Options.Width; x++) {
 						for(int s = 0; s<config.SamplesPerPoint; s++) {
 							double nx = 1.0 * rnd.NextDouble() - 0.5;
@@ -49,7 +52,7 @@ namespace DensityBrot
 							progress.Update("Matrix");
 						}
 					}
-				}
+				});
 			}
 
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
