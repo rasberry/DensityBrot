@@ -12,7 +12,7 @@ namespace Test
 	[TestClass]
 	public class UnitTests
 	{
-		//[TestMethod]
+		[TestMethod]
 		public void PebbleLockTestOne()
 		{
 			Trace.WriteLine("PebbleLockTestOne");
@@ -47,7 +47,7 @@ namespace Test
 			}
 		}
 
-		//[TestMethod]
+		[TestMethod]
 		public void PebbleLockTestTwo()
 		{
 			Trace.WriteLine("PebbleLockTestTwo");

@@ -12,11 +12,12 @@ using System.Threading;
 
 namespace DensityBrot
 {
-	//#if false
+	#if false
+	// TODO turns out this doesn't really work 100% - also makes things *very* slow
 	//Notes: (Works!!)
 	// - It seems to be that to use wait() you have to signal all threads on Set()
 	// and that is why ManualResetEvent works and not AutoResetEvent or SemaphoreSlim(1,1)
-	// - Looks like the reason this works is because TryAdd can happen between 
+	// - Looks like the reason this works is because TryAdd can happen between
 	// TryRemove and Set() which can cause the 'release' to happen on the wrong 'sync object'
 	public class PebbleLock<T> : IDisposable
 	{
@@ -52,7 +53,7 @@ namespace DensityBrot
 		T Key;
 		bool wasDisposed = false;
 	}
-	//#endif
+	#endif
 
 	#if false
 	//Notes: (Works!!)
@@ -94,11 +95,41 @@ namespace DensityBrot
 	}
 	#endif
 
+	//#if false
+	//
+	public class PebbleLock<T> : IDisposable
+	{
+		static ConcurrentDictionary<T,int> store
+			= new ConcurrentDictionary<T,int>();
+
+		public PebbleLock(T item)
+		{
+			Key = item;
+			while(!store.TryAdd(item,Thread.CurrentThread.ManagedThreadId)) {
+				Thread.Sleep(1); //TODO can this be a ResetEvent ?
+			}
+		}
+
+		public void Dispose()
+		{
+			if (!store.TryRemove(Key,out int threadid)) {
+				throw new InvalidOperationException("failed to remove key");
+			} else {
+				if (threadid != Thread.CurrentThread.ManagedThreadId) {
+					throw new InvalidOperationException("thread id's don't match");
+				}
+			}
+		}
+
+		T Key;
+	}
+	//#endif
+
 	#if false
+	//Notes: (works!!)
 	//TODO trying different approach where we keep track of just {thread count} number of items
 	// then check if another thread is using the same key. Seems like a sound idea, but this
-	// implementation does not work
-	//TODO this crashes
+	// - also seem fairly slow tho
 	public class PebbleLock<T> : IDisposable
 	{
 		static Dictionary<T,int> store = new Dictionary<T, int>();
@@ -107,13 +138,18 @@ namespace DensityBrot
 		public PebbleLock(T item)
 		{
 			Key = item;
-			lock(locker)
+			bool wasAquired = false;
+			while(!wasAquired)
 			{
-				if (!store.TryGetValue(item,out int thread)) {
-					store.Add(item,Thread.CurrentThread.ManagedThreadId);
-				} else {
-					//TODO humm.. we don't want to block here or we get a deadlock
-					Thread.Yield(); //TODO can this be a ResetEvent ?
+				lock(locker)
+				{
+					if (!store.TryGetValue(item,out int thread)) {
+						store.Add(item,Thread.CurrentThread.ManagedThreadId);
+						wasAquired = true;
+					}
+				}
+				if (!wasAquired) {
+					Thread.Sleep(1); //TODO can this be a ResetEvent ?
 				}
 			}
 		}
@@ -122,9 +158,12 @@ namespace DensityBrot
 		{
 			lock(locker)
 			{
-				if (!store.Remove(Key,out int thread) || thread != Thread.CurrentThread.ManagedThreadId) {
-					//TODO crashes here
+				if (!store.Remove(Key,out int thread)) {
 					throw new InvalidOperationException("failed to remove key");
+				} else {
+					if (thread != Thread.CurrentThread.ManagedThreadId) {
+						throw new InvalidOperationException("thread id's don't match");
+					}
 				}
 			}
 		}

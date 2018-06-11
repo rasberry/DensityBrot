@@ -22,7 +22,7 @@ namespace DensityBrot
 		public void Build()
 		{
 			Stopwatch sw = Stopwatch.StartNew();
-			
+
 			//TODO maybe have an option for image size bounds ?
 			// double sampleRadW = config.Resolution / Options.Width;
 			// double sampleRadH = config.Resolution / Options.Height;
@@ -34,16 +34,17 @@ namespace DensityBrot
 			//	2 * config.Escape + 2 * sampleRadW,
 			//	2 * config.Escape + 2 * sampleRadH
 			//);
-			
+
 			//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
-			var rnd = new Random();
 			long total = Options.Height * Options.Width * config.SamplesPerPoint;
-			var po = new ParallelOptions {
-				MaxDegreeOfParallelism = 2 * Environment.ProcessorCount
-			};
+			//var po = new ParallelOptions {
+			//	MaxDegreeOfParallelism = 2 * Environment.ProcessorCount
+			//};
 			using (var progress = Logger.CreateProgress(total))
 			{
-				Parallel.For(0,Options.Height,po,(y) => {
+				Parallel.For(0,Options.Height,(y) => {
+				//for(int y = 0; y<Options.Height; y++) {
+					var rnd = new Random(y);
 					for(int x = 0; x<Options.Width; x++) {
 						for(int s = 0; s<config.SamplesPerPoint; s++) {
 							double nx = 1.0 * rnd.NextDouble() - 0.5;
@@ -53,6 +54,7 @@ namespace DensityBrot
 						}
 					}
 				});
+				//}
 			}
 
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
@@ -85,7 +87,7 @@ namespace DensityBrot
 				z = new Complex(cx,cy); break;
 			}
 		}
-		
+
 		static void RenderPart(FractalConfig conf, double x, double y, int wth, int hth, IDensityMatrix data)
 		{
 			//http://www.physics.emory.edu/faculty/weeks/software/mandel.c
@@ -127,7 +129,6 @@ namespace DensityBrot
 		static double WinToWorld(double v, double magnify, int res, double offset)
 		{
 			return magnify / res * v - (magnify / 2 - offset);
-
 		}
 		static int WorldToWin(double v, double magnify, int res, double offset)
 		{
@@ -155,7 +156,6 @@ namespace DensityBrot
 			{
 				return X <= x && x < X + Width && Y <= y && y < Y + Height;
 			}
-
 		}
 
 		class UniqueRandom
