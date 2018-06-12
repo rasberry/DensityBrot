@@ -70,16 +70,39 @@ namespace DensityBrot
 			}
 		}
 
-		static DensityMatrix DoCreateMatrix(FractalConfig conf, string name = null)
+		static IDensityMatrix DoCreateMatrix(FractalConfig conf, string name = null)
 		{
-			DensityMatrix matrix = new DensityMatrix(Options.Width, Options.Height);
+			int threads = Environment.ProcessorCount;
+			IDensityMatrix[] matrix = new DensityMatrix[threads];
+			for(int t=0; t<threads; t++) {
+				matrix[t] = new DensityMatrix(Options.Width, Options.Height);
+			}
 			var builder = new FractalBuilder(matrix, conf);
 			string n = EnsureEndsWith(name ?? Options.FileName, ".dm");
 			Logger.PrintInfo("building matrix [" + n + "]");
 			builder.Build();
 			Logger.PrintInfo("saving matrix file [" + n + "]");
-			FileHelpers.SaveToFile(n,matrix,conf);
-			return matrix;
+			var merged = MergeMatrix(matrix);
+			FileHelpers.SaveToFile(n,merged,conf);
+			return merged;
+		}
+
+		static IDensityMatrix MergeMatrix(IDensityMatrix[] matrix)
+		{
+			var merged = new DensityMatrix(Options.Width, Options.Height);
+			long total = matrix.Length * Options.Width * Options.Height;
+			using (var progress = Logger.CreateProgress(total))
+			{
+				foreach(var m in matrix) {
+					for(int y=0; y<Options.Height; y++) {
+						for(int x=0; x<Options.Width; x++) {
+							merged[x,y] += m[x,y];
+							progress.Update("Merge");
+						}
+					}
+				}
+			}
+			return merged;
 		}
 
 		static void DoCreateImage(IDensityMatrix matrix)
@@ -126,8 +149,8 @@ namespace DensityBrot
 		{
 			double lm = matrix.Maximum;
 			double ln = double.MaxValue;
-			
-			// find minimum 
+
+			// find minimum
 			long totalm = Options.Height * Options.Width;
 			using (var progress = Logger.CreateProgress(totalm))
 			{

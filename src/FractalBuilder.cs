@@ -10,13 +10,13 @@ namespace DensityBrot
 {
 	public class FractalBuilder
 	{
-		public FractalBuilder(IDensityMatrix matrix, FractalConfig config = null)
+		public FractalBuilder(IDensityMatrix[] matrix, FractalConfig config = null)
 		{
 			Matrix = matrix;
 			this.config = config ?? FractalConfig.Default;
 		}
 
-		public IDensityMatrix Matrix { get; set; }
+		public IDensityMatrix[] Matrix { get; set; }
 		FractalConfig config;
 
 		public void Build()
@@ -39,19 +39,22 @@ namespace DensityBrot
 			long total = Options.Height * Options.Width * config.SamplesPerPoint;
 			using (var progress = Logger.CreateProgress(total))
 			{
-				//Parallel.For(0,Options.Height,(y) => {
-				for(int y = 0; y<Options.Height; y++) {
-					var rnd = new Random(y);
-					for(int x = 0; x<Options.Width; x++) {
-						for(int s = 0; s<config.SamplesPerPoint; s++) {
-							double nx = 1.0 * rnd.NextDouble() - 0.5;
-							double ny = 1.0 * rnd.NextDouble() - 0.5;
-							RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,Matrix);
-							progress.Update("Matrix");
+				Parallel.For(0,Matrix.Length,(i) => {
+					var rnd = new Random(i);
+					var mat = Matrix[i];
+					int start = i * Options.Height / Matrix.Length;
+					int end = (1 + i) * Options.Height / Matrix.Length;
+					for(int y = start; y<end; y++) {
+						for(int x = 0; x<Options.Width; x++) {
+							for(int s = 0; s<config.SamplesPerPoint; s++) {
+								double nx = 1.0 * rnd.NextDouble() - 0.5;
+								double ny = 1.0 * rnd.NextDouble() - 0.5;
+								RenderPart(config,x + nx,y + ny,Options.Width,Options.Height,mat);
+								progress.Update("Matrix");
+							}
 						}
 					}
-				//});
-				}
+				});
 			}
 
 			Logger.PrintInfo("Build took "+sw.ElapsedMilliseconds);
