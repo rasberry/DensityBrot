@@ -105,7 +105,9 @@ namespace DensityBrot
 		public PebbleLock(T item)
 		{
 			Key = item;
-			while(!store.TryAdd(item,Thread.CurrentThread.ManagedThreadId)) {
+			while(store.ContainsKey(item)
+				|| !store.TryAdd(item,Thread.CurrentThread.ManagedThreadId))
+			{
 				Thread.Sleep(1); //TODO can this be a ResetEvent ?
 			}
 		}

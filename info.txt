@@ -3,6 +3,7 @@
 	= TODO put multithreaded commits into their own branch
 	= it seem like pebble lock makes the calcs slower than just doing a single thread
 	= so need to either find a method that does not need data sharing
+		- could create a matrix per thread then merge
 	=  or just stick with a single thread
 = configurable fractal formulas
 	= parser would be cool
