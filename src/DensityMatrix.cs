@@ -34,22 +34,15 @@ namespace DensityBrot
 		public long this[int x, int y] {
 			get {
 				long offset = (long)y * Width + x;
-				//using(var pb = new PebbleLock<long>(offset)) {
-					return data[offset];
-				//}
+				return data[offset];
+
 			}
 			set {
 				long offset = (long)y * Width + x;
 				if (value > maximum) {
-					lock(maxLock) {
-						if (value > maximum) {
-							maximum = value;
-						}
-					}
+					maximum = value;
 				}
-				//using (var pb = new PebbleLock<long>(offset)) {
-					data[offset] = value;
-				//}
+				data[offset] = value;
 			}
 		}
 
@@ -180,6 +173,5 @@ namespace DensityBrot
 
 		//need explicit backing field for thead safety
 		long maximum;
-		object maxLock = new object();
 	}
 }
