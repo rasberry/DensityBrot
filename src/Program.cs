@@ -37,12 +37,19 @@ namespace DensityBrot
 			Logger.ShowVerbose = Options.ShowVerbose;
 
 			Logger.PrintLine("Starting "+Options.Mode);
+			Stopwatch sw = null;
+			if (Logger.ShowVerbose) {
+				sw = Stopwatch.StartNew();
+			}
 			switch(Options.Mode)
 			{
 			case Options.ProcessMode.DensityBrot:  CreateDensityBrot(); break;
 			case Options.ProcessMode.CreateOrbits: ProduceOrbits(); break;
 			case Options.ProcessMode.TestColorMap: CreateColorMapTest(); break;
 			case Options.ProcessMode.NebulaBrot:   CreateNebulaBrot(); break;
+			}
+			if (Logger.ShowVerbose) {
+				Logger.PrintInfo("Run took "+(sw.Elapsed.TotalSeconds).ToString("N1")+" seconds");
 			}
 		}
 
@@ -72,10 +79,10 @@ namespace DensityBrot
 
 		static IDensityMatrix DoCreateMatrix(FractalConfig conf, string name = null)
 		{
-			int threads = Environment.ProcessorCount;
-			IDensityMatrix[] matrix = new DensityMatrix[threads];
+			IDensityMatrix[] matrix = new DensityMatrix[Options.ThreadCount];
+			Logger.PrintInfo("Number of threads: "+Options.ThreadCount);
 			try {
-				for(int t=0; t<threads; t++) {
+				for(int t=0; t < Options.ThreadCount; t++) {
 					matrix[t] = new DensityMatrix(Options.Width, Options.Height);
 				}
 				var builder = new FractalBuilder(matrix, conf);
@@ -83,12 +90,19 @@ namespace DensityBrot
 				Logger.PrintInfo("building matrix [" + n + "]");
 				builder.Build();
 				Logger.PrintInfo("saving matrix file [" + n + "]");
-				var merged = MergeMatrix(matrix);
+
+				// if there's only 1 matrix we can just return it as is
+				var merged = matrix.Length == 1
+					? matrix[0]
+					: MergeMatrix(matrix)
+				;
 				FileHelpers.SaveToFile(n,merged,conf);
 				return merged;
 			}
 			finally {
-				if (matrix != null) {
+				//matrix 'merged' is being disposed outside of this function so don't
+				// dispose it here. just skip the matrix.Length == 1 case
+				if (matrix != null && matrix.Length > 1) {
 					foreach(var m in matrix) {
 						if (m != null) {
 							m.Dispose();

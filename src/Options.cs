@@ -24,6 +24,7 @@ namespace DensityBrot
 		public static bool ShowVerbose = false;
 		public static bool CreateMatrix = false;
 		public static bool CreateImage = false;
+		public static int ThreadCount = Environment.ProcessorCount;
 
 		//fractal options
 		public static double FractalEscape = 2.0;
@@ -38,7 +39,7 @@ namespace DensityBrot
 		public static int NebulaRIter = 5000;
 		public static int NebulaGIter = 500;
 		public static int NebulaBIter = 50;
-		
+
 
 		public static bool ProcessArgs(string[] args)
 		{
@@ -47,7 +48,7 @@ namespace DensityBrot
 			for(int a=0; a<args.Length; a++)
 			{
 				string c = args[a];
-				
+
 				//regular options
 				if (c == "--help" || c == "-h")
 				{
@@ -93,6 +94,14 @@ namespace DensityBrot
 						showHelp = true;
 					}
 				}
+				else if (c == "-t" && ++a < args.Length)
+				{
+					string thds = args[a];
+					if (!int.TryParse(thds, out ThreadCount)) {
+						Logger.PrintError("Invalid Thread Count "+thds);
+						showHelp = true;
+					}
+				}
 
 				//color map options
 				else if (c == "-cm" && ++a < args.Length)
@@ -114,7 +123,7 @@ namespace DensityBrot
 				{
 					Mode = ProcessMode.NebulaBrot;
 					if (a+3 < args.Length) {
-						bool good = 
+						bool good =
 							   int.TryParse(args[a+1],out int NebulaRIter)
 							&& int.TryParse(args[a+2],out int NebulaGIter)
 							&& int.TryParse(args[a+3],out int NebulaBIter)
@@ -200,6 +209,11 @@ namespace DensityBrot
 					Logger.PrintError("output image [" + Width + "," + Height + "] size is invalid");
 					showHelp = true;
 				}
+
+				if (ThreadCount < 1 || ThreadCount > Height) {
+					Logger.PrintError("Thread count must be between 1 and "+Height);
+					showHelp = true;
+				}
 			}
 
 			if (showHelp) {
@@ -218,6 +232,8 @@ namespace DensityBrot
 					+"\n                                     if -m is also specified both files will be created"
 					+"\n -d (width) (height)               Size of image output images in pixels"
 					+"\n -r (resolution)                   Scale factor (Default: 4.0; 2.0 = 2x bigger)"
+					+"\n -t (count)                        Use the given number of threads to calculate image. (Default is # of logical cores)"
+					+"\n                                    (Note: each thread requires it's own matrix so this multiplies the required disk space by a comensuarte amount)"
 					// +"\n -o                                Output orbits instead of dentisy plot"
 					// +"\n                                    (Warning: produces one image per coordinate)"
 					+"\n\nColor Options:"
@@ -238,7 +254,7 @@ namespace DensityBrot
 			}
 			return !showHelp;
 		}
-		
+
 		public static FractalConfig ConfigFromOptions()
 		{
 			var conf = new FractalConfig {

@@ -23,12 +23,16 @@ namespace DensityBrot
 		}
 		public static void PrintError(string message)
 		{
+			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Error.WriteLine("E: "+message);
+			Console.ResetColor();
 		}
 		public static void PrintInfo(string message)
 		{
 			if (ShowVerbose) {
+				Console.ForegroundColor = ConsoleColor.DarkGray;
 				Console.WriteLine("I: "+message);
+				Console.ResetColor();
 			}
 		}
 

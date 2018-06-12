@@ -36,10 +36,11 @@ namespace DensityBrot
 			//);
 
 			//var rnd = new UniqueRandom(config.SamplesPerPoint * 2);
+			var po = new ParallelOptions { MaxDegreeOfParallelism = Matrix.Length };
 			long total = Options.Height * Options.Width * config.SamplesPerPoint;
 			using (var progress = Logger.CreateProgress(total))
 			{
-				Parallel.For(0,Matrix.Length,(i) => {
+				Parallel.For(0,Matrix.Length,po,(i) => {
 					var rnd = new Random(i); //does not seem to be thread safe so putting inside thread
 					var mat = Matrix[i];
 					int start = i * Options.Height / Matrix.Length;
