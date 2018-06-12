@@ -74,23 +74,34 @@ namespace DensityBrot
 		{
 			int threads = Environment.ProcessorCount;
 			IDensityMatrix[] matrix = new DensityMatrix[threads];
-			for(int t=0; t<threads; t++) {
-				matrix[t] = new DensityMatrix(Options.Width, Options.Height);
+			try {
+				for(int t=0; t<threads; t++) {
+					matrix[t] = new DensityMatrix(Options.Width, Options.Height);
+				}
+				var builder = new FractalBuilder(matrix, conf);
+				string n = EnsureEndsWith(name ?? Options.FileName, ".dm");
+				Logger.PrintInfo("building matrix [" + n + "]");
+				builder.Build();
+				Logger.PrintInfo("saving matrix file [" + n + "]");
+				var merged = MergeMatrix(matrix);
+				FileHelpers.SaveToFile(n,merged,conf);
+				return merged;
 			}
-			var builder = new FractalBuilder(matrix, conf);
-			string n = EnsureEndsWith(name ?? Options.FileName, ".dm");
-			Logger.PrintInfo("building matrix [" + n + "]");
-			builder.Build();
-			Logger.PrintInfo("saving matrix file [" + n + "]");
-			var merged = MergeMatrix(matrix);
-			FileHelpers.SaveToFile(n,merged,conf);
-			return merged;
+			finally {
+				if (matrix != null) {
+					foreach(var m in matrix) {
+						if (m != null) {
+							m.Dispose();
+						}
+					}
+				}
+			}
 		}
 
 		static IDensityMatrix MergeMatrix(IDensityMatrix[] matrix)
 		{
-			var merged = new DensityMatrix(Options.Width, Options.Height);
 			long total = matrix.Length * Options.Width * Options.Height;
+			var merged = new DensityMatrix(Options.Width, Options.Height);
 			using (var progress = Logger.CreateProgress(total))
 			{
 				foreach(var m in matrix) {

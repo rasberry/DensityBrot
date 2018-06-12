@@ -1,10 +1,4 @@
 == TODO
-= multithreaded calculation
-	= TODO put multithreaded commits into their own branch
-	= it seem like pebble lock makes the calcs slower than just doing a single thread
-	= so need to either find a method that does not need data sharing
-		- could create a matrix per thread then merge
-	=  or just stick with a single thread
 = configurable fractal formulas
 	= parser would be cool
 		= maybe a way to compile to c# code on the fly
@@ -24,7 +18,7 @@
 = unit tests
 = make a readme
 
-== Intersting
+== Interesting
 = take a look at some of the speedups mentioned here https://softologyblog.wordpress.com/2011/06/26/buddhabrot-fractals/
 = http://www.linas.org/art-gallery/mandel/mandel.html
 = http://www.linas.org/art-gallery/escape/escape.html
