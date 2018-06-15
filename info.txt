@@ -11,14 +11,13 @@
 	add option to limit total images
 		limit by number of points before escape
 		limit by bounds
-= progress indicator
-= clean up temp files when program is forcibly closed
-	= why doesn't 'using' do this ?
-= add option to limit parallelism
+		image by orbit orginal (1 iter, 2 iter, etc...)
 = unit tests
+= implement speedups mentioned here https://softologyblog.wordpress.com/2011/06/26/buddhabrot-fractals/
 = make a readme
 
 == Interesting
-= take a look at some of the speedups mentioned here https://softologyblog.wordpress.com/2011/06/26/buddhabrot-fractals/
 = http://www.linas.org/art-gallery/mandel/mandel.html
 = http://www.linas.org/art-gallery/escape/escape.html
+= maybe look at https://www.programmingalgorithms.com/algorithm/mersenne-twister
+=
