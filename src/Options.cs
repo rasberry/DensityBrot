@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,10 +44,12 @@ namespace DensityBrot
 
 		public static bool ProcessArgs(string[] args)
 		{
+			//Trace.WriteLine("ProcessArgs "+args.Length+" "+String.Join(" ",args));
 			bool showHelp = false;
 			bool skipChecks = false;
 			for(int a=0; a<args.Length; a++)
 			{
+				//Trace.WriteLine("args ["+a+"] = "+args[a]+" sh="+showHelp);
 				string c = args[a];
 
 				//regular options
@@ -159,12 +162,14 @@ namespace DensityBrot
 						showHelp = true;
 					}
 				}
-				else if (c == "-he")
+				else if (c == "-re")
 				{
+					//Trace.WriteLine("HideEscaped");
 					HideEscaped = true;
 				}
-				else if (c == "-hc")
+				else if (c == "-rc")
 				{
+					//Trace.WriteLine("HideContained");
 					HideContained = true;
 				}
 
@@ -248,8 +253,8 @@ namespace DensityBrot
 					+"\n -fe (number)                      escape value (default 4.0)"
 					+"\n -fi (number)                      maximum number of iterations (default 1000)"
 					+"\n -fs (number)                      number of samples per pixel (defualt 1)"
-					+"\n -he                               hide escaped orbits"
-					+"\n -hc                               hide contained orbits"
+					+"\n -re                               remove escaped orbits"
+					+"\n -rc                               remove contained orbits"
 				);
 			}
 			return !showHelp;

@@ -13,6 +13,29 @@ namespace DensityBrot
 		double NextDouble();
 	}
 
+	public class RandomWrapper : IRandom
+	{
+		public RandomWrapper()
+		{
+			rnd = new Random();
+		}
+		public RandomWrapper(int seed)
+		{
+			rnd = new Random(seed);
+		}
+
+		public int Next()
+		{
+			return rnd.Next();
+		}
+		public double NextDouble()
+		{
+			return rnd.NextDouble();
+		}
+
+		Random rnd;
+	}
+
 	public class UniqueRandom : IRandom
 	{
 		public UniqueRandom(int seed = 1301)
