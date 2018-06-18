@@ -14,7 +14,9 @@
 		image by orbit orginal (1 iter, 2 iter, etc...)
 = unit tests
 = implement speedups mentioned here https://softologyblog.wordpress.com/2011/06/26/buddhabrot-fractals/
+= add option to use image range as bailout (so square instead of round)
 = make a readme
+= figure out why images are still coming out grayish for higher samples per point values
 
 == Interesting
 = http://www.linas.org/art-gallery/mandel/mandel.html
