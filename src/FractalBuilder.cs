@@ -158,37 +158,5 @@ namespace DensityBrot
 				return X <= x && x < X + Width && Y <= y && y < Y + Height;
 			}
 		}
-
-		class UniqueRandom
-		{
-			public UniqueRandom(int count)
-			{
-				this.count = count;
-				if (count < 3) {
-					enumerator = EdgeCaseEnumerator(count);
-				} else {
-					var rnd = LinearFeedbackShiftRegister.SequenceLength(1301u,(ulong)count,true);
-					enumerator = rnd.GetEnumerator();
-				}
-			}
-
-			int count;
-			IEnumerator<ulong> enumerator;
-
-			public double NextDouble()
-			{
-				enumerator.MoveNext();
-				ulong v = enumerator.Current;
-				return (double)v / count;
-			}
-
-			static IEnumerator<ulong> EdgeCaseEnumerator(int count)
-			{
-				ulong i = 0;
-				while(true) {
-					yield return i = (i + 1) % (ulong)count;
-				}
-			}
-		}
 	}
 }

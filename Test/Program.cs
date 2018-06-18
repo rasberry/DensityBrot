@@ -16,7 +16,8 @@ namespace DendityBrot.Test
 			} catch(Exception e) {
 				Exception c = e;
 				while(c != null) {
-					Console.Error.WriteLine(c.Message);
+					//Console.Error.WriteLine(c.Message);
+					Console.Error.WriteLine(c.ToString());
 					c = c.InnerException;
 				}
 			}

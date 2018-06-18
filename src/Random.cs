@@ -7,9 +7,84 @@ using System.Threading.Tasks;
 
 namespace DensityBrot
 {
-	//https://en.wikipedia.org/wiki/Linear-feedback_shift_register#Galois_LFSRs
-	public static class LinearFeedbackShiftRegister
+	public interface IRandom
 	{
+		int Next();
+		double NextDouble();
+	}
+
+	public class UniqueRandom : IRandom
+	{
+		public UniqueRandom(int seed = 1301)
+		{
+			this.length = ulong.MaxValue;
+			var rnd = LinearFeedbackShiftRegister.SequenceBits(64,(ulong)seed,true);
+			enumerator = rnd.GetEnumerator();
+		}
+
+		public UniqueRandom(ulong sequenceLength, ulong seed = 1301u)
+		{
+			this.length = sequenceLength;
+			if (sequenceLength < 3) {
+				enumerator = EdgeCaseEnumerator(sequenceLength);
+			} else {
+				var rnd = LinearFeedbackShiftRegister.SequenceLength(seed,(ulong)sequenceLength,true);
+				enumerator = rnd.GetEnumerator();
+			}
+		}
+
+		ulong length;
+		IEnumerator<ulong> enumerator;
+
+		public double NextDouble()
+		{
+			enumerator.MoveNext();
+			ulong v = enumerator.Current;
+			return v * (1.0 / length);
+		}
+
+		public int Next()
+		{
+			enumerator.MoveNext();
+			ulong v = enumerator.Current;
+			return (int)(v % int.MaxValue);
+		}
+
+		static IEnumerator<ulong> EdgeCaseEnumerator(ulong sequenceLength)
+		{
+			ulong i = 0;
+			while(true) {
+				yield return i = (i + 1) % sequenceLength;
+			}
+		}
+	}
+
+	//https://en.wikipedia.org/wiki/Linear-feedback_shift_register#Galois_LFSRs
+	public class LinearFeedbackShiftRegister : IRandom
+	{
+		public LinearFeedbackShiftRegister(int seed = 1301)
+		{
+			seq = SequenceBits(64,(ulong)seed,true).GetEnumerator();
+		}
+
+		public int Next()
+		{
+			seq.MoveNext();
+			return (int)(seq.Current % (ulong)int.MaxValue);
+		}
+
+		public double NextDouble()
+		{
+			double d = double.NaN;
+			while(double.IsInfinity(d) || double.IsNaN(d)) {
+				seq.MoveNext();
+				d = BitConverter.Int64BitsToDouble((long)seq.Current);
+			}
+			return d;
+		}
+
+		IEnumerator<ulong> seq;
+
 		//sequence by number of bits in the register
 		public static IEnumerable<ulong> SequenceBits(int bitLength, ulong initialState = 31L, bool repeat = false)
 		{
@@ -120,7 +195,7 @@ namespace DensityBrot
 
 	// https://en.wikipedia.org/wiki/Mersenne_Twister
 	// http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/VERSIONS/C-LANG/mt19937-64.c
-	public class MersenneTwister
+	public class MersenneTwister : IRandom
 	{
 		const int
 			W = 64,                  //word_size
@@ -142,11 +217,16 @@ namespace DensityBrot
 			defSeed = 5489           //default_seed
 		;
 
+		const ulong lowerMask = (1uL << R) - 1; //R number of binary 1's
+		const ulong upperMask = ~lowerMask;
+
 		ulong[] MT = new ulong[N];
 		int index = 0;
-		static ulong lowerMask = (1uL << R) - 1; //R number of binary 1's
-		static ulong upperMask = ~lowerMask;
 
+		public MersenneTwister(int seed) : this((ulong)seed)
+		{
+		}
+		
 		public MersenneTwister(ulong seed = defSeed)
 		{
 			Seed(seed);
@@ -161,6 +241,21 @@ namespace DensityBrot
 			for(ulong i=1; i<N; i++) {
 				MT[i] = F * (MT[i-1] ^ (MT[i-1] >> (W-2))) + i;
 			}
+		}
+
+		public int Next()
+		{
+			return (int)(Extract() % int.MaxValue);
+		}
+
+		public double NextDouble()
+		{
+			double d = double.NaN;
+			while(double.IsNaN(d) || double.IsInfinity(d)) {
+				ulong v = Extract();
+				d = BitConverter.Int64BitsToDouble((long)v);
+			}
+			return d;
 		}
 
 	 	// Extract a tempered value based on MT[index]
