@@ -118,11 +118,13 @@ namespace DensityBrot
 		{
 			didEscape = false;
 			int iter;
-			for(iter = 0; iter < itermax; iter++) {
-				z = z*z + c;
+			for(iter = 0; iter < itermax; iter++)
+			{
+				z = ComplexFunction.IterateComplexFunction(z, c);
 				points[iter] = z;
 				var dist = z.Magnitude;
-				if (dist > escape || double.IsNaN(dist) || double.IsInfinity(dist)) {
+				if (dist > escape || double.IsNaN(dist) || double.IsInfinity(dist))
+				{
 					didEscape = true;
 					break;
 				}
